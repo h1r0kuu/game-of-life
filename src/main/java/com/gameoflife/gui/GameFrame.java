@@ -9,6 +9,7 @@ public class GameFrame extends JFrame {
 
     public GameFrame(GamePanel gPanel) {
         add(gPanel);
+        add(new OptionPanel());
         setTitle("Game of Life");
         setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(EXIT_ON_CLOSE);

@@ -2,13 +2,14 @@ package com.gameoflife.grid;
 
 import com.gameoflife.entity.Cell;
 import com.gameoflife.gui.GameFrame;
+import com.gameoflife.gui.GamePanel;
 
 import java.awt.*;
 
 public class Grid {
     public static final int CELL_SIZE = 10;
-    private final int rows = GameFrame.WIDTH / CELL_SIZE;
-    private final int columns = GameFrame.HEIGHT / CELL_SIZE;
+    private final int rows = GamePanel.GamePanelWidth / CELL_SIZE;
+    private final int columns = GamePanel.GamePanelHeight / CELL_SIZE;
 
     private Cell[][] grids = new Cell[rows][columns];
 
