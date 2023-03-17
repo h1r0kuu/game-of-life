@@ -4,9 +4,6 @@ import com.gameoflife.adapters.KeyAdapter;
 import com.gameoflife.gui.GameFrame;
 import com.gameoflife.gui.GamePanel;
 
-import java.awt.event.*;
-import java.util.Timer;
-
 public class Game implements Runnable {
 
     private Thread gameThread;
@@ -14,15 +11,13 @@ public class Game implements Runnable {
     private GameFrame gameFrame;
     private final int FPS_SET = 5;
 
-    private boolean isPaused = false;
 
     public void togglePause() {
-        isPaused = !isPaused;
+        gamePanel.setPaused(!gamePanel.isPaused());
     }
 
     public Game(GamePanel gamePanel) {
-        gamePanel.addKeyListener(new KeyAdapter());
-        gamePanel.requestFocus();
+        gamePanel.addKeyListener(new KeyAdapter(this));
         this.gamePanel = gamePanel;
         this.gameFrame = new GameFrame(gamePanel);
     }
@@ -44,7 +39,7 @@ public class Game implements Runnable {
         while (true) {
             now = System.nanoTime();
             if(now - lastFrame >= timePerFrame) {
-                if(isPaused) {
+                if(gamePanel.isPaused()) {
                     gamePanel.repaint();
                 }
                 lastFrame = now;
