@@ -3,23 +3,26 @@ package com.gameoflife;
 import com.gameoflife.adapters.KeyAdapter;
 import com.gameoflife.gui.GameFrame;
 import com.gameoflife.gui.GamePanel;
+import com.gameoflife.gui.OptionPanel;
 
 public class Game implements Runnable {
 
     private Thread gameThread;
-    private GamePanel gamePanel;
+    private final GamePanel gamePanel;
+    private OptionPanel optionPanel;
     private GameFrame gameFrame;
-    private final int FPS_SET = 5;
+    private final int FPS_SET = 120;
 
 
     public void togglePause() {
         gamePanel.setPaused(!gamePanel.isPaused());
     }
 
-    public Game(GamePanel gamePanel) {
+    public Game(GamePanel gamePanel, OptionPanel optionPanel) {
         gamePanel.addKeyListener(new KeyAdapter(this));
         this.gamePanel = gamePanel;
-        this.gameFrame = new GameFrame(gamePanel);
+        this.optionPanel = optionPanel;
+        this.gameFrame = new GameFrame(gamePanel, optionPanel);
     }
 
     public void startGame() {
@@ -39,9 +42,7 @@ public class Game implements Runnable {
         while (true) {
             now = System.nanoTime();
             if(now - lastFrame >= timePerFrame) {
-                if(gamePanel.isPaused()) {
-                    gamePanel.repaint();
-                }
+                gamePanel.repaint();
                 lastFrame = now;
                 frames++;
             }
