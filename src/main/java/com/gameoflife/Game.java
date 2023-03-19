@@ -22,6 +22,7 @@ public class Game implements Runnable {
         gamePanel.addKeyListener(new KeyAdapter(this));
         this.gamePanel = gamePanel;
         this.optionPanel = optionPanel;
+        this.gamePanel.setOptionPanel(optionPanel);
         this.gameFrame = new GameFrame(gamePanel, optionPanel);
     }
 
@@ -39,7 +40,10 @@ public class Game implements Runnable {
         int frames = 0;
         long lastCheck = System.currentTimeMillis();
 
+        long lastUpdate = System.currentTimeMillis();
         while (true) {
+            long updateInterval = (long) (1000.0 / (gamePanel.getSpeed() / 10) );
+
             now = System.nanoTime();
             if(now - lastFrame >= timePerFrame) {
                 gamePanel.repaint();
@@ -51,6 +55,14 @@ public class Game implements Runnable {
                 lastCheck = System.currentTimeMillis();
                 System.out.println("FPS: " + frames);
                 frames = 0;
+            }
+
+            if (System.currentTimeMillis() - lastUpdate >= updateInterval) {
+                lastUpdate = System.currentTimeMillis();
+                if (!gamePanel.isPaused()) {
+                    optionPanel.updateGenerationLabel(gamePanel.getGeneration() + 1);
+                    gamePanel.nextGeneration();
+                }
             }
         }
     }

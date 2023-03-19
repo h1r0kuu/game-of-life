@@ -10,15 +10,28 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 public class GamePanel extends JPanel {
-
     private Grid grid;
     private int mouseX;
     private int mouseY;
 
+    private OptionPanel optionPanel;
+
     private boolean isPaused = false;
+    private int speed = 50;
+
+    private int generation = 0;
 
 
     public GamePanel() {
+        initGamePanel();
+    }
+
+    public GamePanel(OptionPanel optionPanel) {
+        this.optionPanel = optionPanel;
+        initGamePanel();
+    }
+
+    public void initGamePanel() {
         setLayout(new BorderLayout());
         addMouseMotionListener(new MouseMotionAdapter(this));
         addMouseListener(new MouseClickAdapter(this));
@@ -36,6 +49,11 @@ public class GamePanel extends JPanel {
         });
     }
 
+
+    public void setOptionPanel(OptionPanel optionPanel) {
+        this.optionPanel = optionPanel;
+    }
+
     public void drawCell(int x, int y) {
         int gridX = x / grid.getCellSize();
         int gridY = y / grid.getCellSize();
@@ -49,10 +67,12 @@ public class GamePanel extends JPanel {
     }
 
     public void clearGrid() {
+        this.generation = 0;
         grid.clearGrid();
     }
 
     public void randomizeGrid(double probability) {
+        this.generation = 0;
         grid.randomize(probability);
     }
 
@@ -61,14 +81,25 @@ public class GamePanel extends JPanel {
         this.mouseY = mouseY;
     }
 
+    public int getGeneration() {
+        return this.generation;
+    }
+
+    public void nextGeneration() {
+        if(this.grid != null) {
+            this.generation += 1;
+            grid.nextGeneration();
+        }
+    }
+
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        grid.update(g);
-        int cellX = mouseX / grid.getCellSize();
-        int cellY = mouseY / grid.getCellSize();
-        grid.hoverGrid(cellX, cellY, g);
-        if(isPaused) {
-            grid.nextGeneration();
+        if(this.grid != null) {
+            grid.update(g);
+            int cellX = mouseX / grid.getCellSize();
+            int cellY = mouseY / grid.getCellSize();
+            optionPanel.updateCellInfo(cellX, cellY, grid.getAliveNeighbours(cellX, cellY));
+            grid.hoverGrid(cellX, cellY, g);
         }
     }
 
@@ -78,5 +109,13 @@ public class GamePanel extends JPanel {
 
     public void setPaused(boolean paused) {
         isPaused = paused;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 }
