@@ -17,11 +17,17 @@ public class MouseMotionAdapter implements MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        gamePanel.setMouseXY(e.getX(), e.getY());
-        if(SwingUtilities.isRightMouseButton(e)) {
-            gamePanel.clearCell(e.getX(), e.getY());
-        } else {
-            gamePanel.drawCell(e.getX(), e.getY());
+        if(e.getX() < gamePanel.getGrid().getRows() * gamePanel.getGrid().getCellSize() &&
+           e.getX() > 0 &&
+           e.getY() > 0 &&
+           e.getY() < gamePanel.getGrid().getColumns() * gamePanel.getGrid().getCellSize()) {
+
+            gamePanel.setMouseXY(e.getX(), e.getY());
+            if (SwingUtilities.isRightMouseButton(e)) {
+                gamePanel.clearCell(e.getX(), e.getY());
+            } else {
+                gamePanel.drawCell(e.getX(), e.getY());
+            }
         }
     }
     @Override

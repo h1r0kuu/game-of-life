@@ -2,12 +2,14 @@ package com.gameoflife.gui;
 
 import com.gameoflife.adapters.MouseClickAdapter;
 import com.gameoflife.adapters.MouseMotionAdapter;
+import com.gameoflife.adapters.MouseWheelAdapter;
 import com.gameoflife.grid.Grid;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.AffineTransform;
 
 public class GamePanel extends JPanel {
     private Grid grid;
@@ -21,6 +23,17 @@ public class GamePanel extends JPanel {
 
     private int generation = 0;
 
+    public double scaleFactor = 1.0;
+
+    public boolean zooming = false;
+
+    private double xOffset = 0;
+    private double yOffset = 0;
+    private int xDiff;
+    private int yDiff;
+
+    private double zoomFactor = 1;
+    private double prevZoomFactor = 1;
 
     public GamePanel() {
         initGamePanel();
@@ -32,21 +45,15 @@ public class GamePanel extends JPanel {
     }
 
     public void initGamePanel() {
-        setLayout(new BorderLayout());
         addMouseMotionListener(new MouseMotionAdapter(this));
         addMouseListener(new MouseClickAdapter(this));
+        addMouseWheelListener(new MouseWheelAdapter(this));
+
         setFocusable(true);
         requestFocus();
+        grid = new Grid(100, 100, Grid.DEFAULT_CELL_SIZE);
+        randomizeGrid(20);
 
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int numRows = getWidth() / Grid.DEFAULT_CELL_SIZE;
-                int numCols = getHeight() / Grid.DEFAULT_CELL_SIZE;
-                grid = new Grid(numRows, numCols, Grid.DEFAULT_CELL_SIZE);
-                randomizeGrid(20);
-            }
-        });
     }
 
 
@@ -55,14 +62,14 @@ public class GamePanel extends JPanel {
     }
 
     public void drawCell(int x, int y) {
-        int gridX = x / grid.getCellSize();
-        int gridY = y / grid.getCellSize();
+        int gridX = mouseX / grid.getCellSize();
+        int gridY = mouseY / grid.getCellSize();
         grid.reviveCell(gridX, gridY);
     }
 
     public void clearCell(int x, int y) {
-        int gridX = x / grid.getCellSize();
-        int gridY = y / grid.getCellSize();
+        int gridX = mouseX / grid.getCellSize();
+        int gridY = mouseX / grid.getCellSize();
         grid.killCell(gridX, gridY);
     }
 
@@ -70,6 +77,7 @@ public class GamePanel extends JPanel {
         this.generation = 0;
         grid.clearGrid();
     }
+
 
     public void randomizeGrid(double probability) {
         this.generation = 0;
@@ -92,15 +100,49 @@ public class GamePanel extends JPanel {
         }
     }
 
+    public void zoom(double factor) {
+        scaleFactor *= factor;
+    }
+
+    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+            AffineTransform at = new AffineTransform();
+
+            double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+            double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+
+            double zoomDiv = scaleFactor / scaleFactor;
+
+            xOffset = (zoomDiv) * (xOffset) + (1 - zoomDiv) * xRel;
+            yOffset = (zoomDiv) * (yOffset) + (1 - zoomDiv) * yRel;
+
+            at.translate(xOffset, yOffset);
+            at.scale(scaleFactor, scaleFactor);
+            prevZoomFactor = zoomFactor;
+            g2d.transform(at);
+            zooming = false;
+
+
         if(this.grid != null) {
-            grid.update(g);
-            int cellX = mouseX / grid.getCellSize();
-            int cellY = mouseY / grid.getCellSize();
+            grid.update(g2d);
+            int cellX = (int) (mouseX / (grid.getCellSize() * scaleFactor));
+            int cellY = (int) (mouseY / (grid.getCellSize() * scaleFactor));
             optionPanel.updateCellInfo(cellX, cellY, grid.getAliveNeighbours(cellX, cellY));
-            grid.hoverGrid(cellX, cellY, g);
+            grid.hoverGrid(cellX, cellY, g2d);
         }
+        g2d.dispose();
+
+    }
+
+    public Grid getGrid() {
+        return grid;
+    }
+
+    public void setGrid(Grid grid) {
+        this.grid = grid;
     }
 
     public boolean isPaused() {

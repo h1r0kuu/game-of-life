@@ -17,9 +17,8 @@ public class GameFrame extends JFrame {
         setLayout(new BorderLayout());
 
         gPanel.setPreferredSize(new Dimension((int) (WIDTH * 0.7), HEIGHT));
-        add(gPanel, BorderLayout.WEST);
+        add(gPanel, BorderLayout.CENTER);
 
-        optionPanel.setPreferredSize(new Dimension((int) (WIDTH - (WIDTH * 0.7)), HEIGHT));
         add(optionPanel, BorderLayout.EAST);
 
         setVisible(true);
