@@ -1,8 +1,6 @@
-package com.gameoflife.grid;
+package com.h1r0kuu.gameoflife;
 
-import com.gameoflife.entity.Cell;
-
-import java.awt.*;
+import com.h1r0kuu.gameoflife.entity.Cell;
 
 public class Grid {
     public static final int DEFAULT_CELL_SIZE = 10;
@@ -36,21 +34,6 @@ public class Grid {
             }
         }
     }
-
-    public void update(Graphics g) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                int x = i * cellSize;
-                int y = j * cellSize;
-                if (grids[i][j].isAlive()) {
-                    g.fillRect(x, y, cellSize, cellSize);
-                } else {
-                    g.drawRect(x, y, cellSize, cellSize);
-                }
-            }
-        }
-    }
-
     public void randomize(double probability) {
         clearGrid();
         for (int i = 0; i < rows; i++) {
@@ -108,11 +91,6 @@ public class Grid {
     }
 
 
-    public void hoverGrid(int hoveredRow, int hoveredCol, Graphics g) {
-        g.setColor(Color.RED);
-        g.drawRect(hoveredRow * cellSize, hoveredCol * cellSize, cellSize, cellSize);
-    }
-
     public void reviveCell(int x, int y) {
         grids[x][y].setAlive(true);
     }
@@ -139,5 +117,9 @@ public class Grid {
 
     public Cell getCell(int row, int column) {
         return grids[row][column];
+    }
+
+    public Cell[][] getGrids() {
+        return grids;
     }
 }
