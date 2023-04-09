@@ -2,14 +2,16 @@ package com.h1r0kuu.gameoflife.entity;
 
 import com.h1r0kuu.gameoflife.OptionController;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Grid {
-    private final int rows;
-    private final int cols;
+    public final int rows;
+    public final int cols;
     private Cell[][] cells;
     private List<Cell> selectedCells = new ArrayList<>();
     private Cell hoveredCell;
@@ -114,33 +116,33 @@ public class Grid {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 int neighbours = getAliveNeighbours(i, j);
-                boolean currentCellIsAlive = getCell(i,j).isAlive();
-                boolean wasAlive = getCell(i, j).wasAlive();
+                Cell cell = getCell(i,j);
+                boolean currentCellIsAlive = cell.isAlive();
+                boolean wasAlive = cell.wasAlive();
 
-                if (currentCellIsAlive && neighbours < 2) {
-                    nextGeneration[i][j] = new Cell(false);
-                } else if (currentCellIsAlive && (neighbours == 2 || neighbours == 3)) {
+                if(currentCellIsAlive && (neighbours == 2 || neighbours == 3)) {
                     nextGeneration[i][j] = new Cell(true);
-                } else if (currentCellIsAlive && neighbours > 3) {
-                    nextGeneration[i][j] = new Cell(false);
+                    nextGeneration[i][j].setWasAlive(false);
                 } else if (!currentCellIsAlive && neighbours == 3) {
                     nextGeneration[i][j] = new Cell(true);
+                    nextGeneration[i][j].setWasAlive(false);
                 } else {
-                    nextGeneration[i][j] = new Cell(currentCellIsAlive);
+                    nextGeneration[i][j] = new Cell(false);
+                    if(currentCellIsAlive) nextGeneration[i][j].setWasAlive(true);
+                    if(cell.wasAlive()) nextGeneration[i][j].setWasAlive(true);
                 }
-
-                nextGeneration[i][j].setLifeTime(getCell(i, j).getLifetime());
-                nextGeneration[i][j].setDeadTime(getCell(i, j).getDeadTime());
-                nextGeneration[i][j].setWasAlive(wasAlive);
+                nextGeneration[i][j].setLifeTime(cell.getLifetime());
+                nextGeneration[i][j].setDeadTime(cell.getDeadTime());
+                nextGeneration[i][j].setEvent(cell.getEvent());
                 nextGeneration[i][j].update();
 
-                if(getCell(i,j).isHovered()) {
+                if(cell.isHovered()) {
                     nextGeneration[i][j].setHovered(true);
                     hoveredCell = nextGeneration[i][j];
                 }
 
-                if(getCell(i, j).isSelected()) {
-                    selectedCells.remove(getCell(i, j));
+                if(cell.isSelected()) {
+                    selectedCells.remove(cell);
                     nextGeneration[i][j].setSelected(true);
                     selectedCells.add(nextGeneration[i][j]);
                 }
@@ -149,11 +151,12 @@ public class Grid {
         cells = nextGeneration;
     }
 
-    public void hoverGrid(int hoveredRow, int hoveredCol) {
+    public void hoverGrid(int hoveredRow, int hoveredCol, Label cellInfo) {
         Cell cell = getCell(hoveredRow, hoveredCol);
         if(cell != null) {
             if(hoveredCell != null && hoveredCell != cell) hoveredCell.setHovered(false);
             cell.setHovered(true);
+            cellInfo.setText(hoveredRow + " " + hoveredCol + "=" + (cell.isAlive() ? 1 : 0) + ";" + (cell.wasAlive() ? 1 : 0));
             hoveredCell = cell;
         }
     }
@@ -195,8 +198,11 @@ public class Grid {
 
     public void reviveCell(int x, int y) {
         Cell cell = getCell(x, y);
+        cell.setLifeTime(0);
+        cell.setDeadTime(0);
         cell.setAlive(true);
         cell.setEvent(CellEvent.REVIEW);
+
     }
 
     public void killCell(int x, int y) {
@@ -235,5 +241,13 @@ public class Grid {
             selectedCells.remove(c);
             c.setSelected(false);
         }
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
     }
 }
