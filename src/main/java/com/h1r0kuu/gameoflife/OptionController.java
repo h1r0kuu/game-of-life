@@ -8,7 +8,7 @@ import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -18,7 +18,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Scale;
 
@@ -41,7 +41,9 @@ public class OptionController {
     public static Theme getCurrentTheme() { return themeManager.getCurrentTheme(); }
 
     @FXML
-    private AnchorPane anchorPane;
+    private Pane anchorPane;
+    @FXML
+    private Pane canvasWrapper;
     @FXML
     private Canvas canvas;
     @FXML
@@ -68,36 +70,46 @@ public class OptionController {
     private Label generationCounter;
     @FXML
     private Label gameSpeedLabel;
+    @FXML
+    private Label cellInfo;
 
     @FXML
     private ChoiceBox<String> themes;
+    private double lastX;
+    private double lastY;
 
     @FXML
     public void initialize() {
         setupGrid();
         setupThemes();
 
-        anchorPane.setStyle("-fx-background-color: " + DEFAULT_BG_COLOR);
-        scaleTransform = new Scale(1, 1);
-        canvas.getTransforms().add(scaleTransform);
-        canvas.setOnScroll(event -> {
-            double zoomFactor = 1.5;
-            if (event.getDeltaY() <= 0) {
+
+        canvasWrapper.setOnScroll(event -> {
+            double zoomFactor = 1.1;
+            double deltaY = event.getDeltaY();
+
+            double mouseX = event.getX();
+            double mouseY = event.getY();
+
+            if (deltaY < 0) {
                 zoomFactor = 1 / zoomFactor;
             }
-            double oldScale = canvas.getScaleX();
-            double scale = oldScale * zoomFactor;
-            double f = (scale / oldScale) - 1;
 
-            Bounds bounds = canvas.localToScene(canvas.getBoundsInLocal());
-            double dx = (event.getX() - (bounds.getWidth() / 2 + bounds.getMinX()));
-            double dy = (event.getY() - (bounds.getHeight() / 2 + bounds.getMinY()));
-            canvas.setTranslateX(canvas.getTranslateX() - f * dx);
-            canvas.setTranslateY(canvas.getTranslateY() - f * dy);
-            canvas.setScaleX(scale);
-            canvas.setScaleY(scale);
+            canvas.setScaleX(canvas.getScaleX() * zoomFactor);
+            canvas.setScaleY(canvas.getScaleY() * zoomFactor);
+
+            double canvasMouseX = canvas.sceneToLocal(new Point2D(mouseX, mouseY)).getX();
+            double canvasMouseY = canvas.sceneToLocal(new Point2D(mouseX, mouseY)).getY();
+            double canvasDeltaX = canvasMouseX - canvas.getBoundsInLocal().getWidth() / 2;
+            double canvasDeltaY = canvasMouseY - canvas.getBoundsInLocal().getHeight() / 2;
+            canvas.setTranslateX(canvas.getTranslateX() - canvasDeltaX * (zoomFactor - 1));
+            canvas.setTranslateY(canvas.getTranslateY() - canvasDeltaY * (zoomFactor - 1));
+
+            event.consume();
         });
+
         setupCanvasMouseHandlers();
+        setupPaneMouseHandlers();
 
         drawState.setOnMouseClicked(e -> {
             setOptionState(OptionState.DRAWING);
@@ -123,22 +135,53 @@ public class OptionController {
         });
     }
 
+    private void setupPaneMouseHandlers() {
+        canvasWrapper.setOnMousePressed(event -> {
+            lastX = event.getSceneX();
+            lastY = event.getSceneY();
+        });
+
+        canvasWrapper.setOnMouseDragged(event -> {
+            double deltaX = event.getSceneX() - lastX;
+            double deltaY = event.getSceneY() - lastY;
+            double newX = canvasWrapper.getLayoutX() + deltaX;
+            double newY = canvasWrapper.getLayoutY() + deltaY;
+            if (newX > 0) {
+                newX = 0;
+            } else if (newX < -canvasWrapper.getWidth() + canvas.getWidth()) {
+                newX = -canvasWrapper.getWidth() + canvas.getWidth();
+            }
+            if (newY > 0) {
+                newY = 0;
+            } else if (newY < -canvasWrapper.getHeight() + canvas.getHeight()) {
+                newY = -canvasWrapper.getHeight() + canvas.getHeight();
+            }
+            canvasWrapper.setLayoutX(newX);
+            canvasWrapper.setLayoutY(newY);
+            lastX = event.getSceneX();
+            lastY = event.getSceneY();
+
+        });
+    }
+
     private void setupCanvasMouseHandlers() {
         canvas.setOnMouseMoved(e -> {
-            int gridx = (int) (e.getX() / (Cell.CELL_SIZE * 1.0));
-            int gridy = (int) (e.getY() / (Cell.CELL_SIZE * 1.0));
-            grid.hoverGrid(gridx, gridy);
-        });
-        canvas.setOnMousePressed(event -> {
-            mouseX = event.getSceneX();
-            mouseY = event.getSceneY();
+
+            mouseX = e.getSceneX();
+            mouseY = e.getSceneY();
 
             canvasX = canvas.getLayoutX();
             canvasY = canvas.getLayoutY();
 
-            startX = event.getX();
-            startY = event.getY();
+            startX = e.getX();
+            startY = e.getY();
 
+            int gridx = (int) (startX / (Cell.CELL_SIZE * 1.0));
+            int gridy = (int) (startY / (Cell.CELL_SIZE * 1.0));
+            grid.hoverGrid(gridx, gridy, cellInfo);
+        });
+        
+        canvas.setOnMousePressed(event -> {
             endX = event.getX();
             endY = event.getY();
 
@@ -152,34 +195,53 @@ public class OptionController {
                 } else {
                     grid.killCell(gridx, gridy);
                 }
-            } else if(optionState.equals(OptionState.MOVING)) {
-
-                mouseX = event.getX();
-                mouseY = event.getY();
             }
         });
 
         canvas.setOnMouseDragged(e -> {
-            if(optionState.equals(OptionState.DRAWING)) {
-                int gridx = (int) (e.getX() / (Cell.CELL_SIZE * 1.0));
-                int gridy = (int) (e.getY() / (Cell.CELL_SIZE * 1.0));
+            if (e.getX() >= 0 && e.getY() >= 0 && e.getX() < canvas.getWidth() && e.getY() < canvas.getHeight()) {
+                int startX = (int) Math.floor(this.startX / Cell.CELL_SIZE);
+                int startY = (int) Math.floor(this.startY / Cell.CELL_SIZE);
+                int endX = (int) Math.floor(e.getX() / Cell.CELL_SIZE);
+                int endY = (int) Math.floor(e.getY() / Cell.CELL_SIZE);
 
-                grid.hoverGrid(gridx, gridy);
-                if(e.isPrimaryButtonDown()) {
-                    grid.reviveCell(gridx, gridy);
-                } else {
-                    grid.killCell(gridx, gridy);
+                // Interpolate cells using Bresenham's line algorithm
+                int dx = Math.abs(endX - startX);
+                int dy = Math.abs(endY - startY);
+                int sx = startX < endX ? 1 : -1;
+                int sy = startY < endY ? 1 : -1;
+                int err = dx - dy;
+
+                if (optionState.equals(OptionState.DRAWING)) {
+                    if (startX >= 0 && startX < grid.getRows() && startY >= 0 && startY < grid.getCols()) {
+                        while (true) {
+
+                            if (e.isPrimaryButtonDown()) {
+                                grid.reviveCell(startX, startY);
+                            } else {
+                                grid.killCell(startX, startY);
+                            }
+                            if (startX == endX && startY == endY) {
+                                break;
+                            }
+                            int e2 = 2 * err;
+                            if (e2 > -dy) {
+                                err -= dy;
+                                startX += sx;
+                            }
+                            if (e2 < dx) {
+                                err += dx;
+                                startY += sy;
+                            }
+                        }
+                    }
+                } else if (optionState.equals(OptionState.SELECTING)) {
+                    grid.selectRange(startX, startY, endX, endY);
                 }
-            } else if(optionState.equals(OptionState.MOVING)) {
-                double deltaX = e.getSceneX() - mouseX;
-                double deltaY = e.getSceneY() - mouseY;
-                canvas.setLayoutX(canvasX + deltaX);
-                canvas.setLayoutY(canvasY + deltaY);
 
-            } else if(optionState.equals(OptionState.SELECTING)) {
-                endX = e.getX();
-                endY = e.getY();
-                grid.selectRange(startX, startY, endX, endY);
+
+                this.startX = e.getX();
+                this.startY = e.getY();
             }
         });
 
@@ -198,15 +260,9 @@ public class OptionController {
         selectState.setStyle("");
 
         switch (optionState) {
-            case DRAWING:
-                drawState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
-                break;
-            case MOVING:
-                moveState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
-                break;
-            case SELECTING:
-                selectState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
-                break;
+            case DRAWING -> drawState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
+            case MOVING -> moveState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
+            case SELECTING -> selectState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
         }
     }
 
@@ -294,7 +350,7 @@ public class OptionController {
 
     public void changeGameSpeed(MouseEvent mouseEvent) {
         gameSpeedNum = (int)gameSpeed.getValue();
-        gameSpeedLabel.setText(String.format("%d gen/s", gameSpeedNum));
+        gameSpeedLabel.setText(String.format("%d gps", gameSpeedNum));
     }
 
 
