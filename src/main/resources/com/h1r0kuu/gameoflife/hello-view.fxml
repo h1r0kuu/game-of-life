@@ -8,14 +8,16 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox alignment="CENTER" maxHeight="480.0" maxWidth="640.0" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.h1r0kuu.gameoflife.OptionController">
     <children>
-        <AnchorPane fx:id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" VBox.vgrow="ALWAYS">
+        <Pane fx:id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" VBox.vgrow="ALWAYS">
             <children>
-                <Canvas fx:id="canvas" height="480.0" width="640.0" />
+                <Pane fx:id="canvasWrapper" maxHeight="-1.0" maxWidth="-1.0" style="-fx-background-color: #666666;">
+                    <Canvas fx:id="canvas" height="1480.0" width="1640.0" />
+                </Pane>
                 <Button fx:id="playToggle" layoutX="502.0" layoutY="430.0" minWidth="40.0" mnemonicParsing="false" onMouseClicked="#togglePlay" prefHeight="26.0" prefWidth="40.0">
                     <graphic>
                         <ImageView fx:id="playImage" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -92,14 +94,15 @@
                 <Slider fx:id="gameZoom" layoutX="271.0" layoutY="17.0" onMouseDragged="#changeGameScale" prefHeight="24.0" prefWidth="93.0" value="50.0" />
                 <Label layoutX="302.0" layoutY="5.0" text="Zoom" textFill="WHITE" />
                 <Label layoutX="312.0" layoutY="32.0" text="1x" textFill="WHITE" />
-            <Label fx:id="gameSpeedLabel" layoutX="297.0" layoutY="447.0" text="10 gen/s" textFill="WHITE" />
+            <Label fx:id="gameSpeedLabel" layoutX="297.0" layoutY="447.0" style="-fx-background-color: #ffffff;" text="10 gps" />
             <Label fx:id="generationCounter" layoutX="20.0" layoutY="435.0" style="-fx-background-color: #ffffff; -fx-label-padding: 5 5;" text="Generation: 0">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
             </Label>
             <ChoiceBox fx:id="themes" layoutX="404.0" layoutY="27.0" prefWidth="150.0" />
+            <Label fx:id="cellInfo" layoutX="19.0" layoutY="402.0" prefHeight="29.0" prefWidth="82.0" style="-fx-background-color: #ffffff;" />
             </children>
-        </AnchorPane>
+        </Pane>
     </children>
 </VBox>
