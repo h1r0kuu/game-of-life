@@ -9,6 +9,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -17,10 +20,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
+import javafx.stage.Screen;
 
 public class OptionController {
     private Grid grid;
@@ -35,7 +40,7 @@ public class OptionController {
     private double canvasX, canvasY;
     private Scale scaleTransform;
     private double zoom = 1.0;
-    private double startX, startY, endX, endY;
+    private double startX, startY, endX, endY, selectx, selecty;
     private static final Color DEFAULT_BG_COLOR = Color.web("#151310");
     private static final ThemeManager themeManager = new ThemeManager();
     public static Theme getCurrentTheme() { return themeManager.getCurrentTheme(); }
@@ -83,7 +88,6 @@ public class OptionController {
         setupGrid();
         setupThemes();
 
-
         canvasWrapper.setOnScroll(event -> {
             double zoomFactor = 1.1;
             double deltaY = event.getDeltaY();
@@ -110,6 +114,7 @@ public class OptionController {
 
         setupCanvasMouseHandlers();
         setupPaneMouseHandlers();
+        setupCanvasKeyHandlers();
 
         drawState.setOnMouseClicked(e -> {
             setOptionState(OptionState.DRAWING);
@@ -122,6 +127,18 @@ public class OptionController {
         });
 
         startGameLoop();
+    }
+
+    private void setupCanvasKeyHandlers() {
+
+        canvas.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.C) {
+                ClipboardContent content = new ClipboardContent();
+                content.putImage(canvas.snapshot(null, null));
+                Clipboard.getSystemClipboard().setContent(content);
+                event.consume();
+            }
+        });
     }
 
     private void setupThemes() {
@@ -139,6 +156,7 @@ public class OptionController {
         canvasWrapper.setOnMousePressed(event -> {
             lastX = event.getSceneX();
             lastY = event.getSceneY();
+
         });
 
         canvasWrapper.setOnMouseDragged(event -> {
@@ -166,9 +184,10 @@ public class OptionController {
 
     private void setupCanvasMouseHandlers() {
         canvas.setOnMouseMoved(e -> {
+            canvas.requestFocus();
 
-            mouseX = e.getSceneX();
-            mouseY = e.getSceneY();
+            mouseX = e.getX();
+            mouseY = e.getY();
 
             canvasX = canvas.getLayoutX();
             canvasY = canvas.getLayoutY();
@@ -184,7 +203,8 @@ public class OptionController {
         canvas.setOnMousePressed(event -> {
             endX = event.getX();
             endY = event.getY();
-
+            selectx = event.getX();
+            selecty = event.getY();
             if(optionState.equals(OptionState.DRAWING)) {
                 setPaused(true);
                 int gridx = (int) (startX / (Cell.CELL_SIZE * 1.0));
@@ -236,9 +256,9 @@ public class OptionController {
                         }
                     }
                 } else if (optionState.equals(OptionState.SELECTING)) {
-                    grid.selectRange(startX, startY, endX, endY);
-                }
 
+                    grid.selectRange(selectx, selecty, e.getX(), e.getY());
+                }
 
                 this.startX = e.getX();
                 this.startY = e.getY();
@@ -248,6 +268,8 @@ public class OptionController {
         canvas.setOnMouseReleased(e -> {
             if(optionState.equals(OptionState.DRAWING)) {
                 if(!pausedByButton) setPaused(false);
+            } else if(optionState.equals(OptionState.SELECTING)) {
+
             }
         });
     }

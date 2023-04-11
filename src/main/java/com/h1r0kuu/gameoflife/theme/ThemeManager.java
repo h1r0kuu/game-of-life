@@ -16,14 +16,14 @@ public class ThemeManager {
                 "Classic",
                 Color.rgb(255, 255, 255),
                 Color.rgb(192, 192, 192),
-                Color.rgb(0, 128, 0),
+                Color.rgb(0, 0, 0),
                 CellShade.G,
                 CellShadeDirection.MIN,
-                Color.rgb(0, 255, 0),
+                Color.rgb(0, 0, 0),
                 Color.rgb(255, 255, 255),
                 CellShade.R,
                 CellShadeDirection.MAX,
-                Color.rgb(192, 192, 192)
+                Color.rgb(255, 255, 255)
         );
         themes.add(classic);
 
@@ -56,6 +56,21 @@ public class ThemeManager {
                 Color.rgb(0, 24, 0)
         );
         themes.add(poison);
+
+        Theme book = new Theme(
+                "Book",
+                Color.rgb(255, 255, 255),
+                Color.rgb(192, 192, 192),
+                Color.rgb(0, 0, 0),
+                CellShade.R,
+                CellShadeDirection.MIN,
+                Color.rgb(0, 0, 0),
+                Color.rgb(192, 220, 255),
+                CellShade.B,
+                CellShadeDirection.MAX,
+                Color.rgb(255, 220, 192)
+        );
+        themes.add(book);
 
         this.currentTheme = classic;
     }
