@@ -8,146 +8,199 @@ import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
+import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.transform.Scale;
-import javafx.stage.Screen;
+
+import java.util.Stack;
 
 public class OptionController {
+
     private Grid grid;
-    private final int FPS_SET = 180;
-    private int gameSpeedNum = 10;
+    private final int FPS = 180;
+    private int gameSpeed = 10;
     private boolean isPaused = false;
     private boolean pausedByButton = false;
     private AnimationTimer animationTimer;
     private OptionState optionState = OptionState.DRAWING;
     private double mouseX, mouseY;
     private int generation = 0;
-    private double canvasX, canvasY;
-    private Scale scaleTransform;
-    private double zoom = 1.0;
-    private double startX, startY, endX, endY, selectx, selecty;
-    private static final Color DEFAULT_BG_COLOR = Color.web("#151310");
+    private double canvasX, canvasY, lastX, lastY;
+    private double startX, startY, endX, endY, selectX, selectY;
     private static final ThemeManager themeManager = new ThemeManager();
     public static Theme getCurrentTheme() { return themeManager.getCurrentTheme(); }
+    private static final Color IDLE_BUTTON_COLOR = Color.rgb(0, 0, 0, 0.77);
+    private static final Color HOVERED_BUTTON_COLOR = Color.web("#FF0000");
 
     @FXML
-    private Pane anchorPane;
+    private VBox canvasWrapper;
+
     @FXML
-    private Pane canvasWrapper;
+    private StackPane stackPane;
+
+    @FXML
+    private BorderPane borderPane;
+
     @FXML
     private Canvas canvas;
-    @FXML
-    private Button playToggle;
-    @FXML
-    private ImageView playImage;
-    @FXML
-    private Slider gameSpeed;
-    @FXML
-    private Slider gameZoom;
-    @FXML
-    private Button clearButton;
-    @FXML
-    private Button nextGenerationButton;
-    @FXML
-    private Button drawState;
-    @FXML
-    private Button moveState;
-    @FXML
-    private Button selectState;
-    @FXML
-    private Button showBorderButton;
-    @FXML
-    private Label generationCounter;
-    @FXML
-    private Label gameSpeedLabel;
-    @FXML
-    private Label cellInfo;
 
     @FXML
-    private ChoiceBox<String> themes;
-    private double lastX;
-    private double lastY;
+    private ImageView playImage;
+
+    @FXML
+    private Slider gameSpeedSlider;
+
+    @FXML
+    private Slider gameZoomSlider;
+
+    @FXML
+    private Group clearButton;
+
+    @FXML
+    private Group nextGenerationButton;
+
+    @FXML
+    private Group drawButton;
+
+    @FXML
+    private Group moveButton;
+
+    @FXML
+    private Group selectButton;
+
+    @FXML
+    private Group showBorderButton;
+
+    @FXML
+    private Label generationCounterLabel;
+
+    @FXML
+    private Label gameSpeedLabel;
+
+    @FXML
+    private Label cellInfoLabel;
+
+    @FXML
+    private Group fpsCounterGroup;
+
+    private Label fpsCounterLabel;
+
+    @FXML
+    private ChoiceBox<String> themeChoiceBox;
+
+    private Stack<Cell[][]> gameBoardHistory = new Stack<>();
+
+
 
     @FXML
     public void initialize() {
         setupGrid();
         setupThemes();
-
+        getRectangle(drawButton).setFill(HOVERED_BUTTON_COLOR);
+        this.fpsCounterLabel = (Label) fpsCounterGroup.getChildren().get(1);
+        borderPane.setPickOnBounds(false);
         canvasWrapper.setOnScroll(event -> {
-            double zoomFactor = 1.1;
-            double deltaY = event.getDeltaY();
-
+            double currentScale = canvas.getScaleX();
             double mouseX = event.getX();
             double mouseY = event.getY();
 
+            double zoomFactor = 1.2;
+            double deltaY = event.getDeltaY();
             if (deltaY < 0) {
-                zoomFactor = 1 / zoomFactor;
+                currentScale /= zoomFactor;
+            } else {
+                currentScale *= zoomFactor;
             }
 
-            canvas.setScaleX(canvas.getScaleX() * zoomFactor);
-            canvas.setScaleY(canvas.getScaleY() * zoomFactor);
+            double newScale = Math.max(0.1, Math.min(currentScale, 10.0));
+            double pivotX = (mouseX - canvas.getTranslateX()) / canvas.getWidth();
+            double pivotY = (mouseY - canvas.getTranslateY()) / canvas.getHeight();
 
-            double canvasMouseX = canvas.sceneToLocal(new Point2D(mouseX, mouseY)).getX();
-            double canvasMouseY = canvas.sceneToLocal(new Point2D(mouseX, mouseY)).getY();
-            double canvasDeltaX = canvasMouseX - canvas.getBoundsInLocal().getWidth() / 2;
-            double canvasDeltaY = canvasMouseY - canvas.getBoundsInLocal().getHeight() / 2;
-            canvas.setTranslateX(canvas.getTranslateX() - canvasDeltaX * (zoomFactor - 1));
-            canvas.setTranslateY(canvas.getTranslateY() - canvasDeltaY * (zoomFactor - 1));
+            double deltaX = (1 - newScale / currentScale) * pivotX;
+            double deltaY1 = (1 - newScale / currentScale) * pivotY;
 
-            event.consume();
+            canvas.setScaleX(newScale);
+            canvas.setScaleY(newScale);
+
+            canvas.setTranslateX(canvas.getTranslateX() + deltaX);
+            canvas.setTranslateY(canvas.getTranslateY() + deltaY1);
         });
+
 
         setupCanvasMouseHandlers();
         setupPaneMouseHandlers();
-        setupCanvasKeyHandlers();
+        setupHotkeys();
 
-        drawState.setOnMouseClicked(e -> {
+        drawButton.setOnMouseClicked(e -> {
             setOptionState(OptionState.DRAWING);
         });
-        moveState.setOnMouseClicked(e -> {
+        moveButton.setOnMouseClicked(e -> {
             setOptionState(OptionState.MOVING);
         });
-        selectState.setOnMouseClicked(e -> {
+        selectButton.setOnMouseClicked(e -> {
             setOptionState(OptionState.SELECTING);
         });
 
         startGameLoop();
     }
 
-    private void setupCanvasKeyHandlers() {
+    private void setupGrid() {
+        int rows = (int) Math.floor(canvas.getWidth() / Cell.CELL_SIZE);
+        int cols = (int) Math.floor(canvas.getHeight() / Cell.CELL_SIZE);
 
-        canvas.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
+        GraphicsContext graphics = canvas.getGraphicsContext2D();
+        this.grid = new Grid(rows, cols, graphics);
+        grid.init();
+        grid.randomize(25);
+        grid.update();
+
+        canvas.setScaleX(1.0);
+        canvas.setScaleY(1.0);
+    }
+
+    private void setupHotkeys() {
+        canvas.setOnKeyPressed(e -> {
+            if (e.isControlDown() && e.getCode() == KeyCode.C) {
                 ClipboardContent content = new ClipboardContent();
                 content.putImage(canvas.snapshot(null, null));
                 Clipboard.getSystemClipboard().setContent(content);
-                event.consume();
+                e.consume();
+            } else if(e.getCode() == KeyCode.X) {
+                toggleGrid();
+            } else if(e.getCode() == KeyCode.PAUSE || e.getCode() == KeyCode.HOME) {
+                setPaused(!isPaused);
+            } else if(e.getCode() == KeyCode.A) {
+                previousGeneration();
+            } else if(e.getCode() == KeyCode.D) {
+                nextGen();
+            } else if(e.getCode() == KeyCode.C) {
+                themeManager.nextTheme();
+            } else if(e.getCode() == KeyCode.R) {
+                clearGrid();
+            } else if(e.getCode() == KeyCode.F) {
+                fpsCounterGroup.setVisible(!fpsCounterGroup.isVisible());
             }
         });
     }
 
     private void setupThemes() {
         ObservableList<String> themeNames = FXCollections.observableArrayList(themeManager.getThemes().stream().map(t -> t.THEME_NAME).toList());
-        themes.setItems(themeNames);
-        if(themeNames.size() > 0) themes.setValue(themeNames.get(0));
+        themeChoiceBox.setItems(themeNames);
+        if(themeNames.size() > 0) themeChoiceBox.setValue(themeNames.get(0));
 
-        themes.getSelectionModel().selectedIndexProperty().addListener((observableValue, number, number2) -> {
-            String newTheme = themes.getItems().get((Integer) number2);
+        themeChoiceBox.getSelectionModel().selectedIndexProperty().addListener((observableValue, number, number2) -> {
+            String newTheme = themeChoiceBox.getItems().get((Integer) number2);
             themeManager.changeTheme(newTheme);
         });
     }
@@ -160,25 +213,16 @@ public class OptionController {
         });
 
         canvasWrapper.setOnMouseDragged(event -> {
-            double deltaX = event.getSceneX() - lastX;
-            double deltaY = event.getSceneY() - lastY;
-            double newX = canvasWrapper.getLayoutX() + deltaX;
-            double newY = canvasWrapper.getLayoutY() + deltaY;
-            if (newX > 0) {
-                newX = 0;
-            } else if (newX < -canvasWrapper.getWidth() + canvas.getWidth()) {
-                newX = -canvasWrapper.getWidth() + canvas.getWidth();
-            }
-            if (newY > 0) {
-                newY = 0;
-            } else if (newY < -canvasWrapper.getHeight() + canvas.getHeight()) {
-                newY = -canvasWrapper.getHeight() + canvas.getHeight();
-            }
-            canvasWrapper.setLayoutX(newX);
-            canvasWrapper.setLayoutY(newY);
-            lastX = event.getSceneX();
-            lastY = event.getSceneY();
+            if(optionState.equals(OptionState.MOVING)) {
+                double deltaX = event.getSceneX() - lastX;
+                double deltaY = event.getSceneY() - lastY;
 
+                canvas.setTranslateX(canvas.getTranslateX() + deltaX);
+                canvas.setTranslateY(canvas.getTranslateY() + deltaY);
+
+                lastX = event.getSceneX();
+                lastY = event.getSceneY();
+            }
         });
     }
 
@@ -197,14 +241,14 @@ public class OptionController {
 
             int gridx = (int) (startX / (Cell.CELL_SIZE * 1.0));
             int gridy = (int) (startY / (Cell.CELL_SIZE * 1.0));
-            grid.hoverGrid(gridx, gridy, cellInfo);
+            grid.hoverGrid(gridx, gridy, cellInfoLabel);
         });
         
         canvas.setOnMousePressed(event -> {
             endX = event.getX();
             endY = event.getY();
-            selectx = event.getX();
-            selecty = event.getY();
+            selectX = event.getX();
+            selectY = event.getY();
             if(optionState.equals(OptionState.DRAWING)) {
                 setPaused(true);
                 int gridx = (int) (startX / (Cell.CELL_SIZE * 1.0));
@@ -257,7 +301,7 @@ public class OptionController {
                     }
                 } else if (optionState.equals(OptionState.SELECTING)) {
 
-                    grid.selectRange(selectx, selecty, e.getX(), e.getY());
+                    grid.selectRange(selectX, selectY, e.getX(), e.getY());
                 }
 
                 this.startX = e.getX();
@@ -277,20 +321,24 @@ public class OptionController {
     private void setOptionState(OptionState optionState) {
         this.optionState = optionState;
 
-        drawState.setStyle("");
-        moveState.setStyle("");
-        selectState.setStyle("");
+        Rectangle drawRect = getRectangle(drawButton);
+        Rectangle moveRect = getRectangle(moveButton);
+        Rectangle selectRect = getRectangle(selectButton);
+
+        drawRect.setFill(IDLE_BUTTON_COLOR);
+        moveRect.setFill(IDLE_BUTTON_COLOR);
+        selectRect.setFill(IDLE_BUTTON_COLOR);
 
         switch (optionState) {
-            case DRAWING -> drawState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
-            case MOVING -> moveState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
-            case SELECTING -> selectState.setStyle("-fx-background-color: #68ff00; -fx-text-fill: white");
+            case DRAWING -> drawRect.setFill(HOVERED_BUTTON_COLOR);
+            case MOVING -> moveRect.setFill(HOVERED_BUTTON_COLOR);
+            case SELECTING -> selectRect.setFill(HOVERED_BUTTON_COLOR);
         }
     }
 
     public void startGameLoop() {
         animationTimer = new AnimationTimer() {
-            final double timePerFrame = 1_000_000_000.0 / FPS_SET;
+            final double timePerFrame = 1_000_000_000.0 / FPS;
             long lastFrame = System.nanoTime();
             long now;
 
@@ -300,7 +348,7 @@ public class OptionController {
 
             @Override
             public void handle(long l) {
-                long updateInterval = (long) (1000.0 / gameSpeedNum );
+                long updateInterval = (long) (1000.0 / gameSpeed );
 
                 now = System.nanoTime();
                 if(now - lastFrame >= timePerFrame) {
@@ -311,7 +359,11 @@ public class OptionController {
 
                 if(System.currentTimeMillis() - lastCheck >= 1000) {
                     lastCheck = System.currentTimeMillis();
-                    System.out.println("FPS: " + frames);
+                    fpsCounterLabel.setText(frames + " FPS");
+                    double percentage = (frames - 1) / ((FPS / 2.0) - 1);
+                    int rValue = (int) ((1 - percentage) * 255);
+                    int gValue = (int) (percentage * 255);
+                    fpsCounterLabel.setTextFill(Color.rgb(rValue, gValue, 0));
                     frames = 0;
                 }
 
@@ -326,20 +378,6 @@ public class OptionController {
         animationTimer.start();
     }
 
-    private void setupGrid() {
-        int rows = (int) Math.floor(canvas.getWidth() / Cell.CELL_SIZE);
-        int cols = (int) Math.floor(canvas.getHeight() / Cell.CELL_SIZE);
-
-        GraphicsContext graphics = canvas.getGraphicsContext2D();
-        this.grid = new Grid(rows, cols, graphics);
-        grid.init();
-        grid.randomize(25);
-        grid.update();
-
-        canvas.setScaleX(1.0);
-        canvas.setScaleY(1.0);
-    }
-
     public void setPaused(boolean pause) {
         isPaused = pause;
         if(pause) {
@@ -350,44 +388,72 @@ public class OptionController {
         }
     }
 
-    public void togglePlay(MouseEvent mouseEvent) {
+    @FXML
+    public void togglePlay() {
         setPaused(!isPaused);
         pausedByButton = isPaused;
     }
 
+    public void setGenerationCounter(int newValue) {
+        generationCounterLabel.setText("Generation: " + newValue);
+    }
+
+    @FXML
     public void nextGen() {
+        gameBoardHistory.push(grid.getCells());
         grid.nextGeneration();
-        generationCounter.setText("Generation: " + generation++);
+        setGenerationCounter(++generation);
     }
 
-    public void nextGeneration(MouseEvent mouseEvent) {
-        nextGen();
-        grid.update();
+    @FXML
+    public void previousGeneration() {
+        if (!gameBoardHistory.isEmpty()) {
+            grid.setCells(gameBoardHistory.pop());
+            setGenerationCounter(--generation);
+        }
     }
 
-    public void clearGrid(MouseEvent mouseEvent) {
+    @FXML
+    public void clearGrid() {
         grid.clearGrid();
-        grid.update();
+        setGenerationCounter(0);
     }
 
-    public void changeGameSpeed(MouseEvent mouseEvent) {
-        gameSpeedNum = (int)gameSpeed.getValue();
-        gameSpeedLabel.setText(String.format("%d gps", gameSpeedNum));
+    @FXML
+    public void changeGameSpeed() {
+        gameSpeed = (int)gameSpeedSlider.getValue();
+        gameSpeedLabel.setText(String.format("%d gps", gameSpeed));
     }
 
 
     public void changeGameScale(MouseEvent mouseEvent) {
-        double zoom = gameZoom.getValue() / 100;
+        double zoom = gameZoomSlider.getValue() / 100;
         canvas.setScaleX(zoom);
         canvas.setScaleY(zoom);
     }
 
-    public void toggleGrid(MouseEvent mouseEvent) {
+    public void toggleGrid() {
         grid.setShowBorders(!grid.isShowBorders());
         if(grid.isShowBorders()) {
             showBorderButton.setStyle("-fx-background-color: #68ff00");
         } else {
             showBorderButton.setStyle(null);
         }
+    }
+
+    public Rectangle getRectangle(Group group) {
+        return (Rectangle) group.getChildren().get(0);
+    }
+
+    @FXML
+    public void groupHover(MouseEvent event) {
+        Group group = (Group) event.getSource();
+        getRectangle(group).setFill(HOVERED_BUTTON_COLOR);
+    }
+
+    @FXML
+    public void groupHoverExit(MouseEvent event) {
+        Group group = (Group) event.getSource();
+        getRectangle(group).setFill(IDLE_BUTTON_COLOR);
     }
 }
