@@ -7,7 +7,6 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Grid {
     public final int rows;
@@ -53,7 +52,7 @@ public class Grid {
                 Color cellColor = cell.getColor();
                 drawCell(i, j, borderColor, cellColor);
                 if(showBorders) {
-                    graphics.setStroke(OptionController.getCurrentTheme().GRID.brighter());
+                    graphics.setStroke(OptionController.getCurrentTheme().GRID.darker());
                     graphics.setLineWidth(1);
                     if (j % 5 == 0) {
                         double y = j * Cell.CELL_SIZE;
@@ -156,7 +155,7 @@ public class Grid {
         if(cell != null) {
             if(hoveredCell != null && hoveredCell != cell) hoveredCell.setHovered(false);
             cell.setHovered(true);
-            cellInfo.setText(hoveredRow + " " + hoveredCol + "=" + (cell.isAlive() ? 1 : 0) + ";" + (cell.wasAlive() ? 1 : 0));
+//            cellInfo.setText(hoveredRow + " " + hoveredCol + "=" + (cell.isAlive() ? 1 : 0) + ";" + (cell.wasAlive() ? 1 : 0));
             hoveredCell = cell;
         }
     }
@@ -187,7 +186,7 @@ public class Grid {
         }
 
         if (getCell(gridx, gridy).isSelected()) {
-            graphics.setFill(Color.rgb(255, 255, 255, 0.4));
+            graphics.setFill(Color.rgb(255, 255, 255, 0.7));
             graphics.fillRect(x, y, w, h);
         }
     }
@@ -219,20 +218,32 @@ public class Grid {
         this.showBorders = showBorders;
     }
     public void selectRange(double startX, double startY, double endX, double endY) {
-        double minX = Math.min(startX, endX);
-        double maxX = Math.max(startX, endX);
-        double minY = Math.min(startY, endY);
-        double maxY = Math.max(startY, endY);
+
+        int minX = (int)Math.min(startX, endX);
+        int maxX = (int)Math.max(startX, endX);
+        int minY = (int)Math.min(startY, endY);
+        int maxY = (int)Math.max(startY, endY);
+//                int gridx = (int) (x / (Cell.CELL_SIZE * 1.0));
+//                int gridy = (int) (y / (Cell.CELL_SIZE * 1.0));
+//                Cell cell = getCell(gridx, gridy);
+//                cell.setSelected(true);
+//                if(!selectedCells.contains(cell)){
+//                    selectedCells.add(cell);
+
+
         unselectCells();
-        for (double x = minX; x <= maxX; x++) {
-            for (double y = minY; y <= maxY; y++) {
-                int gridx = (int) (x / (Cell.CELL_SIZE * 1.0));
-                int gridy = (int) (y / (Cell.CELL_SIZE * 1.0));
-                Cell cell = getCell(gridx, gridy);
-                cell.setSelected(true);
-                if(!selectedCells.contains(cell)) selectedCells.add(cell);
-            }
-        }
+        graphics.setFill(Color.rgb(255, 255, 255, 0.7));
+        graphics.fillRect(minX, minY, maxX - minX, maxY - minY);
+
+//        for (int x = minX; x <= maxX; x++) {
+//            for (int y = minY; y <= maxY; y++) {
+//
+//                }
+//            }
+//        }
+
+
+
     }
 
     public void unselectCells() {
@@ -249,5 +260,13 @@ public class Grid {
 
     public int getCols() {
         return cols;
+    }
+
+    public Cell[][] getCells() {
+        return cells;
+    }
+
+    public void setCells(Cell[][] cells) {
+        this.cells = cells;
     }
 }
