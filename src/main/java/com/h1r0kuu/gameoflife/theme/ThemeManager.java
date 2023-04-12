@@ -75,6 +75,15 @@ public class ThemeManager {
         this.currentTheme = classic;
     }
 
+    public void nextTheme() {
+        int currentThemeIndex = themes.indexOf(currentTheme);
+        int nextThemeIndex = currentThemeIndex + 1;
+        if(nextThemeIndex >= themes.size()) {
+            nextThemeIndex = 0;
+        }
+        this.currentTheme = themes.get(nextThemeIndex);
+    }
+
     public Theme getCurrentTheme() {
         return currentTheme;
     }
