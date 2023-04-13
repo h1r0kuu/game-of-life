@@ -1,6 +1,6 @@
 package com.h1r0kuu.gameoflife.entity;
 
-import com.h1r0kuu.gameoflife.OptionController;
+import com.h1r0kuu.gameoflife.manages.GameManager;
 import com.h1r0kuu.gameoflife.theme.CellShade;
 import com.h1r0kuu.gameoflife.theme.CellShadeDirection;
 import com.h1r0kuu.gameoflife.theme.Theme;
@@ -36,9 +36,8 @@ public class Cell {
     }
 
     public Color getColor() {
-        Theme currentTheme = OptionController.getCurrentTheme();
-
-        if (lifetime == 0 && !wasAlive) {
+        Theme currentTheme = GameManager.getCurrentTheme();
+        if (lifetime == 0 && !wasAlive && !isAlive) {
             return currentTheme.BACKGROUND;
         } else if ((wasAlive && !isAlive) || (Objects.equals(event, CellEvent.KILL))) {
             return getColorForState(currentTheme.CELL_DEAD, currentTheme.CELL_DEADRAMP,
@@ -61,22 +60,23 @@ public class Cell {
 
         int value, ramp;
         switch (shade) {
-            case R:
+            case R -> {
                 value = red;
                 ramp = rampRed;
-                break;
-            case G:
+            }
+            case G -> {
                 value = green;
                 ramp = rampGreen;
-                break;
-            case B:
+            }
+            case B -> {
                 value = blue;
                 ramp = rampBlue;
-                break;
-            default:
+            }
+            default -> {
                 int redMax = 160 - (time + 1);
                 redMax = Math.max(redMax, 60);
                 return Color.rgb(redMax, 0, 0);
+            }
         }
 
         if (shadeDir == CellShadeDirection.MAX) {
@@ -115,6 +115,8 @@ public class Cell {
     public boolean isAlive() {
         return isAlive;
     }
+
+    public CellEvent getEvent() {return event;}
 
     public void setEvent(CellEvent event) {
         this.event = event;

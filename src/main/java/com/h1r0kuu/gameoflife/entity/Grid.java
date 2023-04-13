@@ -1,8 +1,7 @@
 package com.h1r0kuu.gameoflife.entity;
 
-import com.h1r0kuu.gameoflife.OptionController;
+import com.h1r0kuu.gameoflife.manages.GameManager;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -18,12 +17,6 @@ public class Grid {
     private final GraphicsContext graphics;
 
     public static final Color HOVER_COLOR = Color.web("#ff0000");
-
-    public Grid(double canvasWidth, double canvasHeight, GraphicsContext graphics) {
-        this((int) Math.floor(canvasHeight / Cell.CELL_SIZE),
-             (int) Math.floor(canvasWidth / Cell.CELL_SIZE),
-             graphics);
-    }
 
     public Grid(int rows, int cols, GraphicsContext graphics) {
         this.rows = rows;
@@ -48,11 +41,11 @@ public class Grid {
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
                 Cell cell = getCell(i, j);
-                Color borderColor = cell.isHovered() ? HOVER_COLOR : OptionController.getCurrentTheme().GRID;
+                Color borderColor = cell.isHovered() ? HOVER_COLOR : GameManager.getCurrentTheme().GRID;
                 Color cellColor = cell.getColor();
                 drawCell(i, j, borderColor, cellColor);
                 if(showBorders) {
-                    graphics.setStroke(OptionController.getCurrentTheme().GRID.darker());
+                    graphics.setStroke(GameManager.getCurrentTheme().GRID.darker());
                     graphics.setLineWidth(1);
                     if (j % 5 == 0) {
                         double y = j * Cell.CELL_SIZE;
@@ -128,7 +121,7 @@ public class Grid {
                 } else {
                     nextGeneration[i][j] = new Cell(false);
                     if(currentCellIsAlive) nextGeneration[i][j].setWasAlive(true);
-                    if(cell.wasAlive()) nextGeneration[i][j].setWasAlive(true);
+                    if(wasAlive) nextGeneration[i][j].setWasAlive(true);
                 }
                 nextGeneration[i][j].setLifeTime(cell.getLifetime());
                 nextGeneration[i][j].setDeadTime(cell.getDeadTime());
@@ -150,7 +143,7 @@ public class Grid {
         cells = nextGeneration;
     }
 
-    public void hoverGrid(int hoveredRow, int hoveredCol, Label cellInfo) {
+    public void hoverGrid(int hoveredRow, int hoveredCol) {
         Cell cell = getCell(hoveredRow, hoveredCol);
         if(cell != null) {
             if(hoveredCell != null && hoveredCell != cell) hoveredCell.setHovered(false);
@@ -179,7 +172,7 @@ public class Grid {
             graphics.setFill(cellColor);
             graphics.fillRect(x + (borderSize / 2), y + (borderSize / 2), w - borderSize, h - borderSize);
         } else {
-            graphics.setFill(OptionController.getCurrentTheme().BACKGROUND);
+            graphics.setFill(GameManager.getCurrentTheme().BACKGROUND);
             graphics.fillRect(x, y, w, h);
             graphics.setFill(cellColor);
             graphics.fillRect(x, y, w, h);

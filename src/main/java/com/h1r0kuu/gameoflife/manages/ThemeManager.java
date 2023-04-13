@@ -1,5 +1,8 @@
-package com.h1r0kuu.gameoflife.theme;
+package com.h1r0kuu.gameoflife.manages;
 
+import com.h1r0kuu.gameoflife.theme.CellShade;
+import com.h1r0kuu.gameoflife.theme.CellShadeDirection;
+import com.h1r0kuu.gameoflife.theme.Theme;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -8,7 +11,7 @@ import java.util.Optional;
 
 public class ThemeManager {
 
-    private List<Theme> themes = new ArrayList<>();
+    private final List<Theme> themes = new ArrayList<>();
     private Theme currentTheme;
 
     public ThemeManager() {

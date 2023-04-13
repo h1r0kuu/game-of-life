@@ -1,6 +1,6 @@
 package com.h1r0kuu.gameoflife;
 
-public enum OptionState {
+public enum UserActionState {
     DRAWING,
     MOVING,
     SELECTING
