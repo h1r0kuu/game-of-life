@@ -2,6 +2,8 @@ package com.h1r0kuu.gameoflife;
 
 import com.h1r0kuu.gameoflife.components.*;
 import com.h1r0kuu.gameoflife.handlers.CanvasMouseHandlers;
+import com.h1r0kuu.gameoflife.manages.GameBoardManager;
+import com.h1r0kuu.gameoflife.manages.GameLoopManager;
 import com.h1r0kuu.gameoflife.manages.GameManager;
 import com.h1r0kuu.gameoflife.manages.UIManager;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
@@ -14,8 +16,11 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.Background;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class GameOfLife extends Application {
+    private static final Logger logger = LogManager.getLogger(GameOfLife.class);
 
     private StackPaneComponent stackPane;
     private CanvasWrapper canvasWrapper;
@@ -43,15 +48,18 @@ public class GameOfLife extends Application {
 
     private ButtonComponent generationCounterButton;
 
+    private GameManager gameManager;
+    private GameBoardManager gameBoardManager;
+    private GameLoopManager gameLoopManager;
+    private UIManager uiManager;
+
 
     public void initCanvas() {
-        canvas = new CanvasComponent(1024, 1024);
+        canvas = new CanvasComponent(2048, 2048);
         canvasWrapper = new CanvasWrapper(canvas);
-        canvasWrapper.setPrefSize(100, 200);
+        canvasWrapper.setPrefSize(4096, 4096);
         canvasWrapper.setBackground(Background.fill(Color.web("#666666")));
         canvasWrapper.setAlignment(Pos.CENTER);
-        canvas.widthProperty().bind(canvasWrapper.widthProperty());
-        canvas.heightProperty().bind(canvasWrapper.heightProperty());
     }
 
     public void initBorderPane() {
@@ -112,7 +120,7 @@ public class GameOfLife extends Application {
         ImageViewComponent nextGenerationButtonImage = new ImageViewComponent("icons/next.png");
         nextGenerationButton = new ButtonComponent(506, 7, nextGenerationButtonImage);
 
-        ImageViewComponent pauseButtonImage = new ImageViewComponent("icons/pause.png");
+        ImageViewComponent pauseButtonImage = new ImageViewComponent("icons/play.png");
         pauseButton = new ButtonComponent(463, 7, pauseButtonImage);
 
         ImageViewComponent previousGenerationButtonImage = new ImageViewComponent("icons/previous.png");
@@ -139,18 +147,14 @@ public class GameOfLife extends Application {
         borderPane.setBottom(bottomPane);
     }
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        stackPane = new StackPaneComponent();
-        stackPane.setPrefSize(600, 400);
+    public void initManagers() {
+        this.gameLoopManager = new GameLoopManager();
+        this.gameBoardManager = new GameBoardManager();
+        this.gameManager = new GameManager(gameLoopManager, gameBoardManager);
 
-        initCanvas();
-        initBorderPane();
-        initTopPane();
-        initRightPane();
-        initBottomPane();
-
-        GameManager gameManager = new GameManager(canvas,
+        this.uiManager = new UIManager(
+                gameManager,
+                canvas,
                 pauseButton,
                 fpsCounterButton,
                 generationCounterButton,
@@ -160,7 +164,28 @@ public class GameOfLife extends Application {
                 showBorderButton,
                 gameSpeedSlider,
                 gameSpeedSliderText);
-        UIManager uiManager = gameManager.getUiManager();
+
+        gameManager.setUiManager(uiManager);
+
+        gameBoardManager.setUiManager(uiManager);
+        gameBoardManager.setGameManager(gameManager);
+        gameBoardManager.setGrid(uiManager.getGrid());
+
+        gameLoopManager.setGameManager(gameManager);
+        gameLoopManager.setFpsCounterButton(fpsCounterButton);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        stackPane = new StackPaneComponent();
+        stackPane.setMaxSize(600, 600);
+
+        initCanvas();
+        initBorderPane();
+        initTopPane();
+        initRightPane();
+        initBottomPane();
+        initManagers();
 
         nextGenerationButton.setOnMousePressed(uiManager::handleNextGenerationButtonClick);
         pauseButton.setOnMouseClicked(uiManager::handlePauseButtonClick);
@@ -177,16 +202,16 @@ public class GameOfLife extends Application {
         stackPane.setGameManager(gameManager);
         stackPane.getChildren().addAll(canvasWrapper, borderPane);
 
-        Scene scene = new Scene(stackPane);
+        Scene scene = new Scene(stackPane, 600, 600);
         primaryStage.setTitle("Title");
         primaryStage.setScene(scene);
         primaryStage.show();
-        stackPane.requestFocus();
         gameManager.startGameLoop();
+        logger.info("Start");
     }
 
     public void startGame(String[] args) {
+        logger.info("Launch");
         launch(args);
     }
-
 }

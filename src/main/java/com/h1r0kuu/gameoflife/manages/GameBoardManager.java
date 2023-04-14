@@ -3,19 +3,21 @@ package com.h1r0kuu.gameoflife.manages;
 import com.h1r0kuu.gameoflife.entity.Cell;
 import com.h1r0kuu.gameoflife.entity.Grid;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Stack;
 
 public class GameBoardManager {
-    private final GameManager gameManager;
-    private final UIManager uiManager;
-    private final Grid grid;
+    private static final Logger logger = LogManager.getLogger(GameBoardManager.class);
+
+    private GameManager gameManager;
+    private UIManager uiManager;
+    private Grid grid;
     private final Stack<Cell[][]> gameBoardHistory = new Stack<>();
 
-    public GameBoardManager(GameManager gameManager) {
-        this.gameManager = gameManager;
-        this.uiManager = gameManager.getUiManager();
-        this.grid = gameManager.getUiManager().getGrid();
+    public GameBoardManager() {
+        logger.info("GameBoardManager init");
     }
 
     public void nextGeneration() {
@@ -41,4 +43,16 @@ public class GameBoardManager {
         grid.update();
     }
 
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
+    public void setUiManager(UIManager uiManager) {
+        this.uiManager = uiManager;
+    }
+
+    public void setGrid(Grid grid) {
+        logger.info("Set GameBoardManager Grid");
+        this.grid = grid;
+    }
 }

@@ -1,13 +1,18 @@
 package com.h1r0kuu.gameoflife.entity;
 
 import com.h1r0kuu.gameoflife.manages.GameManager;
+import com.h1r0kuu.gameoflife.manages.PatternManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Grid {
+    private static final Logger logger = LogManager.getLogger(Grid.class);
+
     public final int rows;
     public final int cols;
     private Cell[][] cells;
@@ -31,6 +36,10 @@ public class Grid {
                 cells[i][j] = new Cell();
             }
         }
+        PatternManager patternManager = new PatternManager();
+        Pattern pattern = patternManager.getByName("Shark loop");
+        drawPattern(pattern, getRows() / 2, getCols() / 2);
+        logger.info("Grid init");
     }
 
 
@@ -38,12 +47,12 @@ public class Grid {
         double canvasWidth = rows * Cell.CELL_SIZE;
         double canvasHeight = cols * Cell.CELL_SIZE;
 
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 Cell cell = getCell(i, j);
                 Color borderColor = cell.isHovered() ? HOVER_COLOR : GameManager.getCurrentTheme().GRID;
                 Color cellColor = cell.getColor();
-                drawCell(i, j, borderColor, cellColor);
+                drawCell(j, i, borderColor, cellColor);
                 if(showBorders) {
                     graphics.setStroke(GameManager.getCurrentTheme().GRID.darker());
                     graphics.setLineWidth(1);
@@ -153,11 +162,12 @@ public class Grid {
         }
     }
 
-    public void drawCell(int gridx, int gridy, Color borderColor, Color cellColor) {
-        double x = gridx * Cell.CELL_SIZE;
-        double y = gridy * Cell.CELL_SIZE;
+    public void drawCell(int row, int col, Color borderColor, Color cellColor) {
         double w = Cell.CELL_SIZE;
         double h = Cell.CELL_SIZE;
+
+        double x = row * w;
+        double y = col * h;
 
         double borderSize = 1.0;
 
@@ -166,7 +176,7 @@ public class Grid {
             graphics.fillRect(x, y, w, h);
             graphics.setFill(cellColor);
             graphics.fillRect(x + (borderSize / 2), y + (borderSize / 2), w - borderSize, h - borderSize);
-        } else if (getCell(gridx, gridy).isHovered()) {
+        } else if (getCell(row, col).isHovered()) {
             graphics.setFill(borderColor);
             graphics.fillRect(x, y, w, h);
             graphics.setFill(cellColor);
@@ -178,7 +188,7 @@ public class Grid {
             graphics.fillRect(x, y, w, h);
         }
 
-        if (getCell(gridx, gridy).isSelected()) {
+        if (getCell(row, col).isSelected()) {
             graphics.setFill(Color.rgb(255, 255, 255, 0.7));
             graphics.fillRect(x, y, w, h);
         }
@@ -188,8 +198,8 @@ public class Grid {
         return cells[row][column];
     }
 
-    public void reviveCell(int x, int y) {
-        Cell cell = getCell(x, y);
+    public void reviveCell(int row, int col) {
+        Cell cell = getCell(row, col);
         cell.setLifeTime(0);
         cell.setDeadTime(0);
         cell.setAlive(true);
@@ -197,8 +207,8 @@ public class Grid {
 
     }
 
-    public void killCell(int x, int y) {
-        Cell cell = getCell(x, y);
+    public void killCell(int row, int col) {
+        Cell cell = getCell(row, col);
         cell.setAlive(false);
         cell.setEvent(CellEvent.KILL);
     }
@@ -223,20 +233,9 @@ public class Grid {
 //                if(!selectedCells.contains(cell)){
 //                    selectedCells.add(cell);
 
-
         unselectCells();
         graphics.setFill(Color.rgb(255, 255, 255, 0.7));
         graphics.fillRect(minX, minY, maxX - minX, maxY - minY);
-
-//        for (int x = minX; x <= maxX; x++) {
-//            for (int y = minY; y <= maxY; y++) {
-//
-//                }
-//            }
-//        }
-
-
-
     }
 
     public void unselectCells() {
@@ -244,6 +243,17 @@ public class Grid {
         for(Cell c : selectedCellsCopy) {
             selectedCells.remove(c);
             c.setSelected(false);
+        }
+    }
+
+    public void drawPattern(Pattern pattern, int rowStart, int colStart) {
+        Cell[][] patternCells = pattern.getCells();
+        for(int i = rowStart, patternI = 0; (i < rowStart + patternCells.length) && (patternI < patternCells.length); i++, patternI++) {
+            for(int j = colStart, patternJ = 0; (j < colStart + patternCells[0].length) && (patternJ < patternCells[0].length); j++, patternJ++) {
+                if(patternCells[patternI][patternJ].isAlive()) {
+                    getCell(i, j).setAlive(true);
+                }
+            }
         }
     }
 

@@ -45,6 +45,9 @@ public class Cell {
         } else if ((!wasAlive & isAlive) || Objects.equals(event, CellEvent.REVIEW)) {
             return getColorForState(currentTheme.CELL_ALIVE, currentTheme.CELL_ALIVERAMP,
                     currentTheme.cellAliveShade, currentTheme.cellAliveShadeDir, lifetime);
+        } else if(lifetime == 0) {
+            return getColorForState(currentTheme.CELL_ALIVE, currentTheme.CELL_ALIVERAMP,
+                    currentTheme.cellAliveShade, currentTheme.cellAliveShadeDir, lifetime);
         }
         return currentTheme.BACKGROUND;
     }

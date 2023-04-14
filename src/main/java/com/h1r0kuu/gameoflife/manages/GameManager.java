@@ -1,18 +1,19 @@
 package com.h1r0kuu.gameoflife.manages;
 
 import com.h1r0kuu.gameoflife.UserActionState;
-import com.h1r0kuu.gameoflife.components.ButtonComponent;
-import com.h1r0kuu.gameoflife.components.CanvasComponent;
-import com.h1r0kuu.gameoflife.components.SliderComponent;
 import com.h1r0kuu.gameoflife.theme.Theme;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class GameManager {
+    private static final Logger logger = LogManager.getLogger(GameManager.class);
+
     private final GameLoopManager gameLoopManager;
     public final GameBoardManager gameBoardManager;
-    private final UIManager uiManager;
+    private UIManager uiManager;
 
-    private boolean isPaused = false;
-    private boolean pausedByButton = false;
+    private boolean isPaused = true;
+    private boolean pausedByButton = true;
     private int gameSpeed = 10;
     private int generation = 0;
 
@@ -20,30 +21,11 @@ public class GameManager {
     public static final ThemeManager themeManager = new ThemeManager();
     public static Theme getCurrentTheme() { return themeManager.getCurrentTheme(); }
 
-    public GameManager(CanvasComponent canvas,
-                       ButtonComponent pauseButton,
-                       ButtonComponent fpsCounterButton,
-                       ButtonComponent generationCounterButton,
-                       ButtonComponent drawButton,
-                       ButtonComponent moveButton,
-                       ButtonComponent selectButton,
-                       ButtonComponent showBorderButton,
-                       SliderComponent gameSpeedSlider,
-                       ButtonComponent gameSpeedText) {
-        this.uiManager = new UIManager(
-                this,
-                canvas,
-                pauseButton,
-                fpsCounterButton,
-                generationCounterButton,
-                drawButton,
-                moveButton,
-                selectButton,
-                showBorderButton,
-                gameSpeedSlider,
-                gameSpeedText);
-        this.gameLoopManager = new GameLoopManager(this);
-        this.gameBoardManager = new GameBoardManager(this);
+    public GameManager(GameLoopManager gameLoopManager,
+                       GameBoardManager gameBoardManager) {
+        this.gameLoopManager = gameLoopManager;
+        this.gameBoardManager = gameBoardManager;
+        logger.info("GameManager init");
     }
 
     public void startGameLoop() {
@@ -84,6 +66,14 @@ public class GameManager {
 
     public void setGameSpeed(int gameSpeed) {
         this.gameSpeed = gameSpeed;
+    }
+
+    public void setUiManager(UIManager uiManager) {
+        this.uiManager = uiManager;
+    }
+
+    public GameBoardManager getGameBoardManager() {
+        return gameBoardManager;
     }
 
     public UIManager getUiManager() {

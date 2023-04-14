@@ -4,22 +4,27 @@ import com.h1r0kuu.gameoflife.components.ButtonComponent;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
 import javafx.animation.AnimationTimer;
 import javafx.scene.paint.Color;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class GameLoopManager {
+    private static final Logger logger = LogManager.getLogger(GameLoopManager.class);
+
     private AnimationTimer animationTimer;
-    private final GameManager gameManager;
-    private final ButtonComponent fpsCounterButton;
+    private GameManager gameManager;
+    private ButtonComponent fpsCounterButton;
 
     private static final int FPS_SET = 180;
 
-    public GameLoopManager(GameManager gameManager) {
-        this.gameManager = gameManager;
-        this.fpsCounterButton = gameManager.getUiManager().getFpsCounterButton();
+    public GameLoopManager() {
+        logger.info("GameLoopManager init");
         createTimer();
     }
 
     public void createTimer() {
+        logger.info("Timer creation");
         this.animationTimer = new AnimationTimer() {
+
             final double timePerFrame = 1_000_000_000.0 / FPS_SET;
             long lastFrame = System.nanoTime();
             long now;
@@ -32,7 +37,7 @@ public class GameLoopManager {
                 long updateInterval = (long) (1000.0 / gameManager.getGameSpeed());
                 now = System.nanoTime();
                 if(now - lastFrame >= timePerFrame) {
-                    gameManager.gameBoardManager.redrawBoard();
+                    gameManager.getGameBoardManager().redrawBoard();
                     lastFrame = now;
                     frames++;
                 }
@@ -50,7 +55,7 @@ public class GameLoopManager {
                 if (System.currentTimeMillis() - lastUpdate >= updateInterval) {
                     lastUpdate = System.currentTimeMillis();
                     if (!gameManager.isPaused()) {
-                        gameManager.gameBoardManager.nextGeneration();
+                        gameManager.getGameBoardManager().nextGeneration();
                     }
                 }
             }
@@ -59,5 +64,17 @@ public class GameLoopManager {
 
     public void startGameLoop() {
         animationTimer.start();
+    }
+
+    public void stopGameLoop() {
+        animationTimer.stop();
+    }
+
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
+    public void setFpsCounterButton(ButtonComponent fpsCounterButton) {
+        this.fpsCounterButton = fpsCounterButton;
     }
 }

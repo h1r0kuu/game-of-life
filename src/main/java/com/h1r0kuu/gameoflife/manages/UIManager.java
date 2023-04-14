@@ -9,10 +9,14 @@ import com.h1r0kuu.gameoflife.entity.Grid;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Objects;
 
 public class UIManager {
+    private static final Logger logger = LogManager.getLogger(UIManager.class);
+
     private final GameManager gameManager;
 
     private final CanvasComponent canvas;
@@ -51,6 +55,8 @@ public class UIManager {
 
         this.gameSpeedSlider = gameSpeedSlider;
         this.gameSpeedText = gameSpeedText;
+
+        logger.info("UIManager init");
     }
 
     public void setGamePause(boolean pause) {

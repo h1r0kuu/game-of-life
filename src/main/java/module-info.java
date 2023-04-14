@@ -3,6 +3,7 @@ module com.h1r0kuu.gameoflife {
     requires javafx.fxml;
 
     requires org.controlsfx.controls;
+    requires org.apache.logging.log4j;
 
     opens com.h1r0kuu.gameoflife to javafx.fxml;
     exports com.h1r0kuu.gameoflife;

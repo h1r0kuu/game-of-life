@@ -28,9 +28,9 @@ public class CanvasMouseHandlers {
         startX = e.getX();
         startY = e.getY();
 
-        int gridx = (int) (mouseX / (Cell.CELL_SIZE));
-        int gridy = (int) (mouseY / (Cell.CELL_SIZE));
-        canvas.grid.hoverGrid(gridx, gridy);
+        int row = (int) (mouseY / Cell.CELL_SIZE);
+        int col = (int) (mouseX / Cell.CELL_SIZE);
+        canvas.grid.hoverGrid(row, col);
     }
 
     public void onMousePressed(MouseEvent e) {
@@ -40,53 +40,52 @@ public class CanvasMouseHandlers {
         selectY = e.getY();
         if(GameManager.userActionState.equals(UserActionState.DRAWING)) {
             uiManager.setGamePause(true);
-
-            int gridx = (int) (startX / (Cell.CELL_SIZE * 1.0));
-            int gridy = (int) (startY / (Cell.CELL_SIZE * 1.0));
+            int row = (int) (startY / Cell.CELL_SIZE);
+            int col = (int) (startX / Cell.CELL_SIZE);
 
             if(e.isPrimaryButtonDown()) {
-                canvas.grid.reviveCell(gridx, gridy);
+                canvas.grid.reviveCell(row, col);
             } else {
-                canvas.grid.killCell(gridx, gridy);
+                canvas.grid.killCell(row, col);
             }
         }
     }
 
     public void onMouseDragged(MouseEvent e) {
         if (e.getX() >= 0 && e.getY() >= 0 && e.getX() < canvas.getWidth() && e.getY() < canvas.getHeight()) {
-            int cellStartX = (int) Math.floor(this.startX / Cell.CELL_SIZE);
-            int cellStartY = (int) Math.floor(this.startY / Cell.CELL_SIZE);
-            int cellEndX = (int) Math.floor(e.getX() / Cell.CELL_SIZE);
-            int cellEndY = (int) Math.floor(e.getY() / Cell.CELL_SIZE);
-            canvas.grid.hoverGrid(cellEndX, cellEndY);
+            int cellStartRow = (int) Math.floor(this.startY / Cell.CELL_SIZE);
+            int cellStartCol = (int) Math.floor(this.startX / Cell.CELL_SIZE);
+            int cellEndRow = (int) Math.floor(e.getY() / Cell.CELL_SIZE);
+            int cellEndCol = (int) Math.floor(e.getX() / Cell.CELL_SIZE);
+            canvas.grid.hoverGrid(cellEndRow, cellEndCol);
 
             // Interpolate cells using Bresenham's line algorithm
-            int dx = Math.abs(cellEndX - cellStartX);
-            int dy = Math.abs(cellEndY - cellStartY);
-            int sx = cellStartX < cellEndX ? 1 : -1;
-            int sy = cellStartY < cellEndY ? 1 : -1;
+            int dx = Math.abs(cellEndRow - cellStartRow);
+            int dy = Math.abs(cellEndCol - cellStartCol);
+            int sx = cellStartRow < cellEndRow ? 1 : -1;
+            int sy = cellStartCol < cellEndCol ? 1 : -1;
             int err = dx - dy;
 
             if (GameManager.userActionState.equals(UserActionState.DRAWING)) {
-                if (cellStartX >= 0 && cellStartX < canvas.grid.getRows() && cellStartY >= 0 && cellStartY < canvas.grid.getCols()) {
+                if (cellStartRow >= 0 && cellStartRow < canvas.grid.getRows() && cellStartCol >= 0 && cellStartCol < canvas.grid.getCols()) {
                     while (true) {
 
                         if (e.isPrimaryButtonDown()) {
-                            canvas.grid.reviveCell(cellStartX, cellStartY);
+                            canvas.grid.reviveCell(cellStartRow, cellStartCol);
                         } else {
-                            canvas.grid.killCell(cellStartX, cellStartY);
+                            canvas.grid.killCell(cellStartRow, cellStartCol);
                         }
-                        if (cellStartX == cellEndX && cellStartY == cellEndY) {
+                        if (cellStartRow == cellEndRow && cellStartCol == cellEndCol) {
                             break;
                         }
                         int e2 = 2 * err;
                         if (e2 > -dy) {
                             err -= dy;
-                            cellStartX += sx;
+                            cellStartRow += sx;
                         }
                         if (e2 < dx) {
                             err += dx;
-                            cellStartY += sy;
+                            cellStartCol += sy;
                         }
                     }
                 }

@@ -4,12 +4,15 @@ import com.h1r0kuu.gameoflife.theme.CellShade;
 import com.h1r0kuu.gameoflife.theme.CellShadeDirection;
 import com.h1r0kuu.gameoflife.theme.Theme;
 import javafx.scene.paint.Color;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class ThemeManager {
+    private static final Logger logger = LogManager.getLogger(ThemeManager.class);
 
     private final List<Theme> themes = new ArrayList<>();
     private Theme currentTheme;
@@ -76,6 +79,7 @@ public class ThemeManager {
         themes.add(book);
 
         this.currentTheme = classic;
+        logger.info("ThemeManager init");
     }
 
     public void nextTheme() {
