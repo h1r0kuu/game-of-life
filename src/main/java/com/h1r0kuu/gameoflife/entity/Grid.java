@@ -7,16 +7,14 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Grid {
     private static final Logger logger = LogManager.getLogger(Grid.class);
 
     public final int rows;
     public final int cols;
     private Cell[][] cells;
-    private List<Cell> selectedCells = new ArrayList<>();
+    private Cell[][] selectedCells;
+    public Cell[][] cellsToPaste;
     private Cell hoveredCell;
     private boolean showBorders = false;
     private final GraphicsContext graphics;
@@ -52,7 +50,7 @@ public class Grid {
                 Cell cell = getCell(i, j);
                 Color borderColor = cell.isHovered() ? HOVER_COLOR : GameManager.getCurrentTheme().GRID;
                 Color cellColor = cell.getColor();
-                drawCell(j, i, borderColor, cellColor);
+                drawCell(i, j, borderColor, cellColor);
                 if(showBorders) {
                     graphics.setStroke(GameManager.getCurrentTheme().GRID.darker());
                     graphics.setLineWidth(1);
@@ -142,10 +140,8 @@ public class Grid {
                     hoveredCell = nextGeneration[i][j];
                 }
 
-                if(cell.isSelected()) {
-                    selectedCells.remove(cell);
+                if(isSelected(cell)) {
                     nextGeneration[i][j].setSelected(true);
-                    selectedCells.add(nextGeneration[i][j]);
                 }
             }
         }
@@ -154,10 +150,10 @@ public class Grid {
 
     public void hoverGrid(int hoveredRow, int hoveredCol) {
         Cell cell = getCell(hoveredRow, hoveredCol);
+
         if(cell != null) {
             if(hoveredCell != null && hoveredCell != cell) hoveredCell.setHovered(false);
             cell.setHovered(true);
-//            cellInfo.setText(hoveredRow + " " + hoveredCol + "=" + (cell.isAlive() ? 1 : 0) + ";" + (cell.wasAlive() ? 1 : 0));
             hoveredCell = cell;
         }
     }
@@ -189,7 +185,7 @@ public class Grid {
         }
 
         if (getCell(row, col).isSelected()) {
-            graphics.setFill(Color.rgb(255, 255, 255, 0.7));
+            graphics.setFill(Color.rgb(0, 0, 255, 0.7));
             graphics.fillRect(x, y, w, h);
         }
     }
@@ -221,28 +217,73 @@ public class Grid {
         this.showBorders = showBorders;
     }
     public void selectRange(double startX, double startY, double endX, double endY) {
+        double minX = Math.min(startX, endX);
+        double minY = Math.min(startY, endY);
 
-        int minX = (int)Math.min(startX, endX);
-        int maxX = (int)Math.max(startX, endX);
-        int minY = (int)Math.min(startY, endY);
-        int maxY = (int)Math.max(startY, endY);
-//                int gridx = (int) (x / (Cell.CELL_SIZE * 1.0));
-//                int gridy = (int) (y / (Cell.CELL_SIZE * 1.0));
-//                Cell cell = getCell(gridx, gridy);
-//                cell.setSelected(true);
-//                if(!selectedCells.contains(cell)){
-//                    selectedCells.add(cell);
+        double maxX = Math.max(startX, endX);
+        double maxY = Math.max(startY, endY);
 
-        unselectCells();
-        graphics.setFill(Color.rgb(255, 255, 255, 0.7));
-        graphics.fillRect(minX, minY, maxX - minX, maxY - minY);
+
+        int startRow = (int) Math.floor(minX / Cell.CELL_SIZE);
+        int startCol = (int) Math.floor(minY / Cell.CELL_SIZE);
+
+        int endRow = (int) Math.floor(maxX / Cell.CELL_SIZE);
+        int endCol = (int) Math.floor(maxY / Cell.CELL_SIZE);
+        int rows = (endRow - startRow) + 1;
+        int cols = (endCol - startCol) + 1;
+
+        selectedCells = new Cell[cols][rows];
+
+        for (int row = startRow, i = 0; (row <= endRow) && (i < rows); row++, i++) {
+            for (int col = startCol, j = 0; (col <= endCol) && (j < cols); col++, j++) {
+                Cell cell = getCell(row, col);
+                cell.setSelected(true);
+                if (!isSelected(cell)) {
+                    selectedCells[j][i] = cell;
+                }
+            }
+        }
+    }
+
+    public void pasteCells(int startX, int startY) {
+        int height = cellsToPaste.length;
+        int width = cellsToPaste[0].length;
+
+        int startRow = (int) Math.floor(startY / Cell.CELL_SIZE);
+        int startCol = (int) Math.floor(startX / Cell.CELL_SIZE);
+        int endRow = startRow + height;
+        int endCol = startCol + width;
+
+        for (int row = startRow, i = 0; (row <= endRow) && (i < height); row++, i++) {
+            for (int col = startCol, j = 0; (col <= endCol) && (j < width); col++, j++) {
+                Cell cell = getCell(col, row);
+                cell.setAlive(cellsToPaste[i][j].isAlive());
+                cell.setLifeTime(0);
+                cell.setDeadTime(0);
+            }
+        }
+    }
+
+    public boolean isSelected(Cell cell) {
+        boolean result = false;
+        if(selectedCells != null && selectedCells.length > 0) {
+            for(int i = 0; i < selectedCells.length; i++) {
+                for (int j = 0; j < selectedCells[0].length; j++) {
+                    if(selectedCells[i][j] != null && selectedCells[i][j].equals(cell)) result = true;
+                }
+            }
+        }
+        return result;
     }
 
     public void unselectCells() {
-        List<Cell> selectedCellsCopy = new ArrayList<>(selectedCells);
-        for(Cell c : selectedCellsCopy) {
-            selectedCells.remove(c);
-            c.setSelected(false);
+        if(selectedCells != null && selectedCells.length > 0) {
+            for(int i = 0; i < selectedCells.length; i++) {
+                for(int j = 0; j < selectedCells[0].length; j++) {
+                    selectedCells[i][j].setSelected(false);
+                }
+            }
+            selectedCells = null;
         }
     }
 
@@ -271,5 +312,9 @@ public class Grid {
 
     public void setCells(Cell[][] cells) {
         this.cells = cells;
+    }
+
+    public Cell[][] getSelectedCells() {
+        return selectedCells;
     }
 }

@@ -51,6 +51,10 @@ public class GameBoardManager {
         this.uiManager = uiManager;
     }
 
+    public Grid getGrid() {
+        return grid;
+    }
+
     public void setGrid(Grid grid) {
         logger.info("Set GameBoardManager Grid");
         this.grid = grid;

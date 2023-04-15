@@ -6,13 +6,11 @@ import com.h1r0kuu.gameoflife.components.CanvasComponent;
 import com.h1r0kuu.gameoflife.entity.Cell;
 import com.h1r0kuu.gameoflife.manages.UIManager;
 import javafx.scene.input.MouseEvent;
-
 public class CanvasMouseHandlers {
 
     private final GameManager gameManager;
     private final UIManager uiManager;
     private final CanvasComponent canvas;
-
     private double mouseX, mouseY, startX, startY, endX, endY, selectX, selectY;
 
     public CanvasMouseHandlers(CanvasComponent canvasComponent, GameManager gameManager, UIManager uiManager) {
@@ -30,24 +28,34 @@ public class CanvasMouseHandlers {
 
         int row = (int) (mouseY / Cell.CELL_SIZE);
         int col = (int) (mouseX / Cell.CELL_SIZE);
-        canvas.grid.hoverGrid(row, col);
+        canvas.grid.hoverGrid(col, row);
+        Cell cell = canvas.grid.getCell(col, row);
+        uiManager.setCellInfo(col, row, cell.isAlive());
+        if(GameManager.userActionState.equals(UserActionState.PASTING)) {
+
+        }
     }
 
     public void onMousePressed(MouseEvent e) {
         endX = e.getX();
         endY = e.getY();
-        selectX = e.getX();
-        selectY = e.getY();
         if(GameManager.userActionState.equals(UserActionState.DRAWING)) {
-            uiManager.setGamePause(true);
+            if(gameManager.isPauseWhenDraw()) uiManager.setGamePause(true);
             int row = (int) (startY / Cell.CELL_SIZE);
             int col = (int) (startX / Cell.CELL_SIZE);
 
             if(e.isPrimaryButtonDown()) {
-                canvas.grid.reviveCell(row, col);
+                canvas.grid.reviveCell(col, row);
             } else {
-                canvas.grid.killCell(row, col);
+                canvas.grid.killCell(col, row);
             }
+        } else if(GameManager.userActionState.equals(UserActionState.SELECTING)) {
+            selectX = e.getX();
+            selectY = e.getY();
+            canvas.grid.unselectCells();
+        } else if(GameManager.userActionState.equals(UserActionState.PASTING)) {
+            canvas.grid.pasteCells((int)e.getX(), (int)e.getY());
+            gameManager.changeState(UserActionState.SELECTING);
         }
     }
 
@@ -57,7 +65,7 @@ public class CanvasMouseHandlers {
             int cellStartCol = (int) Math.floor(this.startX / Cell.CELL_SIZE);
             int cellEndRow = (int) Math.floor(e.getY() / Cell.CELL_SIZE);
             int cellEndCol = (int) Math.floor(e.getX() / Cell.CELL_SIZE);
-            canvas.grid.hoverGrid(cellEndRow, cellEndCol);
+            canvas.grid.hoverGrid(cellEndCol, cellEndRow);
 
             // Interpolate cells using Bresenham's line algorithm
             int dx = Math.abs(cellEndRow - cellStartRow);
@@ -71,9 +79,9 @@ public class CanvasMouseHandlers {
                     while (true) {
 
                         if (e.isPrimaryButtonDown()) {
-                            canvas.grid.reviveCell(cellStartRow, cellStartCol);
+                            canvas.grid.reviveCell(cellStartCol, cellStartRow);
                         } else {
-                            canvas.grid.killCell(cellStartRow, cellStartCol);
+                            canvas.grid.killCell(cellStartCol, cellStartRow);
                         }
                         if (cellStartRow == cellEndRow && cellStartCol == cellEndCol) {
                             break;
@@ -90,7 +98,7 @@ public class CanvasMouseHandlers {
                     }
                 }
             } else if (GameManager.userActionState.equals(UserActionState.SELECTING)) {
-//                grid.selectRange(selectX, selectY, e.getX(), e.getY());
+                canvas.grid.selectRange(selectX, selectY, e.getX(), e.getY());
             }
 
             this.startX = (int) e.getX();
