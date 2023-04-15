@@ -22,6 +22,8 @@ import org.apache.logging.log4j.Logger;
 public class GameOfLife extends Application {
     private static final Logger logger = LogManager.getLogger(GameOfLife.class);
 
+    private static final int MARGIN = 10;
+
     private StackPaneComponent stackPane;
     private CanvasWrapper canvasWrapper;
     private CanvasComponent canvas;
@@ -29,17 +31,23 @@ public class GameOfLife extends Application {
     private PaneComponent topPane;
     private PaneComponent rightPane;
     private PaneComponent bottomPane;
+    private PaneComponent centerPane;
 
     private ButtonComponent showBorderButton;
     private ChoiceBox<String> themeChoiceBox;
     private SliderComponent gameSpeedSlider;
     private ButtonComponent gameSpeedSliderText;
 
+    private ButtonComponent cellInfoText;
+
     private ButtonComponent fpsCounterButton;
 
     private ButtonComponent drawButton;
+    private ButtonComponent drawPauseButton;
+
     private ButtonComponent moveButton;
     private ButtonComponent selectButton;
+    private ButtonComponent selectAllButton;
 
     private ButtonComponent nextGenerationButton;
     private ButtonComponent pauseButton;
@@ -69,10 +77,11 @@ public class GameOfLife extends Application {
 
     public void initTopPane() {
         topPane = new PaneComponent();
+        topPane.setPickOnBounds(false);
         topPane.setPrefSize(600, 50);
 
         ImageViewComponent showBordersImage = new ImageViewComponent("icons/grid.png");
-        showBorderButton = new ButtonComponent(556, 7, showBordersImage);
+        showBorderButton = new ButtonComponent(556, MARGIN, showBordersImage);
 
         themeChoiceBox = new ChoiceBox<>();
         themeChoiceBox.setLayoutX(461);
@@ -87,7 +96,7 @@ public class GameOfLife extends Application {
             GameManager.themeManager.changeTheme(newTheme);
         });
 
-        fpsCounterButton = new ButtonComponent(7, 7, LabelUtility.getText(60, LabelUtility.FPS));
+        fpsCounterButton = new ButtonComponent(MARGIN, MARGIN, LabelUtility.getText(60, LabelUtility.FPS));
         fpsCounterButton.setTextFill(Color.rgb(0, 255, 0));
 
         topPane.getChildren().addAll(showBorderButton, themeChoiceBox, fpsCounterButton);
@@ -96,46 +105,56 @@ public class GameOfLife extends Application {
 
     public void initRightPane() {
         rightPane = new PaneComponent();
+        rightPane.setPickOnBounds(false);
         rightPane.setPrefSize(50, 350);
 
         ImageViewComponent drawButtonImage = new ImageViewComponent("icons/pen.png");
-        drawButton = new ButtonComponent(7, 14, drawButtonImage);
+        drawButton = new ButtonComponent(MARGIN, 14, drawButtonImage);
         drawButton.getRectangle().setFill(ButtonComponent.DEFAULT_ACTIVE_FILL);
         drawButton.setActive(true);
+//        DropButton dropdown
+        ImageViewComponent penPause = new ImageViewComponent("icons/pen_pause.png");
+        drawPauseButton = new ButtonComponent((int)(MARGIN - drawButton.getRectangle().getWidth()), 14, penPause);
+        drawPauseButton.setActive(true);
 
         ImageViewComponent moveButtonImage = new ImageViewComponent("icons/pan.png");
-        moveButton = new ButtonComponent(7, 100, moveButtonImage);
+        moveButton = new ButtonComponent(MARGIN, 100, moveButtonImage);
 
         ImageViewComponent selectButtonImage = new ImageViewComponent("icons/select.png");
-        selectButton = new ButtonComponent(7, 57, selectButtonImage);
+        selectButton = new ButtonComponent(MARGIN, 57, selectButtonImage);
 
-        rightPane.getChildren().addAll(drawButton, moveButton, selectButton);
+//        SelectButton dropdown
+        ImageViewComponent selectAllImage = new ImageViewComponent("icons/select_all.png");
+        selectAllButton = new ButtonComponent((int)(MARGIN - selectButton.getRectangle().getWidth()), 57, selectAllImage);
+
+        rightPane.getChildren().addAll(drawButton, drawPauseButton, moveButton, selectButton, selectAllButton);
         borderPane.setRight(rightPane);
     }
 
     public void initBottomPane() {
         bottomPane = new PaneComponent();
+        bottomPane.setPickOnBounds(false);
         bottomPane.setPrefSize(600, 50);
 
         ImageViewComponent nextGenerationButtonImage = new ImageViewComponent("icons/next.png");
-        nextGenerationButton = new ButtonComponent(506, 7, nextGenerationButtonImage);
+        nextGenerationButton = new ButtonComponent(506, MARGIN, nextGenerationButtonImage);
 
         ImageViewComponent pauseButtonImage = new ImageViewComponent("icons/play.png");
-        pauseButton = new ButtonComponent(463, 7, pauseButtonImage);
+        pauseButton = new ButtonComponent(463, MARGIN, pauseButtonImage);
 
         ImageViewComponent previousGenerationButtonImage = new ImageViewComponent("icons/previous.png");
-        previousGenerationButton = new ButtonComponent(421, 7, previousGenerationButtonImage);
+        previousGenerationButton = new ButtonComponent(421, MARGIN, previousGenerationButtonImage);
 
         ImageViewComponent resetGenerationButtonImage = new ImageViewComponent("icons/reset.png");
-        clearBoardButton = new ButtonComponent(378, 7, resetGenerationButtonImage);
+        clearBoardButton = new ButtonComponent(378, MARGIN, resetGenerationButtonImage);
 
         gameSpeedSlider = new SliderComponent(1, 64, 10);
         gameSpeedSlider.setLayoutX(182);
-        gameSpeedSlider.setLayoutY(7);
+        gameSpeedSlider.setLayoutY(MARGIN);
 
-        gameSpeedSliderText = new ButtonComponent(150, 7, LabelUtility.getText(10, LabelUtility.GAME_SPEED));
+        gameSpeedSliderText = new ButtonComponent(150, MARGIN, LabelUtility.getText(10, LabelUtility.GAME_SPEED));
 
-        generationCounterButton = new ButtonComponent(14, 7, LabelUtility.getText(0, LabelUtility.GENERATION_COUNTER));
+        generationCounterButton = new ButtonComponent(14, MARGIN, LabelUtility.getText(0, LabelUtility.GENERATION_COUNTER));
 
         bottomPane.getChildren().addAll(generationCounterButton,
                 nextGenerationButton,
@@ -145,6 +164,16 @@ public class GameOfLife extends Application {
                 gameSpeedSliderText,
                 clearBoardButton);
         borderPane.setBottom(bottomPane);
+    }
+
+    public void initCenterPane() {
+        centerPane = new PaneComponent();
+        centerPane.setPickOnBounds(false);
+
+        cellInfoText = new ButtonComponent(MARGIN + 5, 480, LabelUtility.getText(LabelUtility.CELL_INFO, 0,0,"dead"));
+
+        centerPane.getChildren().addAll(cellInfoText);
+        borderPane.setCenter(centerPane);
     }
 
     public void initManagers() {
@@ -159,11 +188,13 @@ public class GameOfLife extends Application {
                 fpsCounterButton,
                 generationCounterButton,
                 drawButton,
+                drawPauseButton,
                 moveButton,
                 selectButton,
                 showBorderButton,
                 gameSpeedSlider,
-                gameSpeedSliderText);
+                gameSpeedSliderText,
+                cellInfoText);
 
         gameManager.setUiManager(uiManager);
 
@@ -185,13 +216,17 @@ public class GameOfLife extends Application {
         initTopPane();
         initRightPane();
         initBottomPane();
+        initCenterPane();
         initManagers();
 
         nextGenerationButton.setOnMousePressed(uiManager::handleNextGenerationButtonClick);
         pauseButton.setOnMouseClicked(uiManager::handlePauseButtonClick);
         previousGenerationButton.setOnMousePressed(uiManager::handlePreviousGenerationButtonClick);
         clearBoardButton.setOnMouseClicked(uiManager::handleClearBoardButtonClick);
+
         drawButton.setOnMouseClicked(e -> uiManager.handleNewStateButtonClick(e, UserActionState.DRAWING));
+        drawPauseButton.setOnMouseClicked(uiManager::handleDrawPauseButtonClick);
+
         moveButton.setOnMouseClicked(e -> uiManager.handleNewStateButtonClick(e, UserActionState.MOVING));
         selectButton.setOnMouseClicked(e -> uiManager.handleNewStateButtonClick(e, UserActionState.SELECTING));
         showBorderButton.setOnMouseClicked(uiManager::handleShowBorderButtonClick);
