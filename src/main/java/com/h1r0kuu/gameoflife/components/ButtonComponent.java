@@ -32,7 +32,7 @@ public class ButtonComponent extends Group {
         this.rectangleComponent = new RectangleComponent(30, 30);
         this.labelComponent = new LabelComponent(title);
         this.labelComponent.setTextFill(DEFAULT_TEXT_FILL);
-        this.labelComponent.textProperty().addListener((observable, oldText, newText) -> {
+        this.labelComponent.boundsInLocalProperty().addListener((observable, oldBounds, newBounds) -> {
             double labelWidth = labelComponent.getBoundsInLocal().getWidth();
             double labelHeight = labelComponent.getBoundsInLocal().getHeight();
             rectangleComponent.setWidth(labelWidth + 10);
