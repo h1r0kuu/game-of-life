@@ -1,6 +1,7 @@
 package com.h1r0kuu.gameoflife.manages;
 
 import com.h1r0kuu.gameoflife.UserActionState;
+import com.h1r0kuu.gameoflife.components.ButtonComponent;
 import com.h1r0kuu.gameoflife.theme.Theme;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,7 @@ public class GameManager {
 
     private boolean isPaused = true;
     private boolean pausedByButton = true;
+    private boolean pauseWhenDraw = true;
     private int gameSpeed = 10;
     private int generation = 0;
 
@@ -48,6 +50,14 @@ public class GameManager {
         this.pausedByButton = pausedByButton;
     }
 
+    public boolean isPauseWhenDraw() {
+        return pauseWhenDraw;
+    }
+
+    public void setPauseWhenDraw(boolean pauseWhenDraw) {
+        this.pauseWhenDraw = pauseWhenDraw;
+    }
+
     public int increaseGeneration() {
         return ++this.generation;
     }
@@ -78,5 +88,24 @@ public class GameManager {
 
     public UIManager getUiManager() {
         return uiManager;
+    }
+
+    public void changeState(UserActionState newState) {
+        userActionState = newState;
+
+        getUiManager().getDrawButton().setActive(false);
+        getUiManager().getDrawButton().getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
+
+        getUiManager().getMoveButton().setActive(false);
+        getUiManager().getMoveButton().getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
+
+        getUiManager().getSelectButton().setActive(false);
+        getUiManager().getSelectButton().getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
+
+        switch (userActionState) {
+            case DRAWING -> getUiManager().getDrawButton().setActive(true);
+            case MOVING -> getUiManager().getMoveButton().setActive(true);
+            case SELECTING -> getUiManager().getSelectButton().setActive(true);
+        }
     }
 }

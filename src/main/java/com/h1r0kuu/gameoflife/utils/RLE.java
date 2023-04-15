@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class RLE {
     private static final char ALIVE_CHAR = 'o';
     private static final char DEAD_CHAR = 'b';
+    private static final Pattern NUM_PATTERN = Pattern.compile("[0-9]+");
 
     public static String encode(Cell[][] cells) {
         StringBuilder sb = new StringBuilder();
@@ -21,11 +22,10 @@ public class RLE {
         int width = cells[0].length;
 
         sb.append(String.format("x = %d, y = %d, rule = B3/S23, ", width, height));
-
         int runCount = 0;
         char tag = ' ';
-        for (int j = 0; j < height; j++) {
-            for (int i = 0; i < width; i++) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
                 char newTag = cells[i][j].isAlive() ? ALIVE_CHAR : DEAD_CHAR;
                 if (tag == ' ') {
                     tag = newTag;
@@ -46,7 +46,8 @@ public class RLE {
             }
             sb.append(tag);
             tag = ' ';
-            sb.append("$");
+            if(i != height - 1)
+                sb.append("$");
         }
         sb.append("!");
         return sb.toString();
@@ -67,7 +68,6 @@ public class RLE {
         int height = Integer.parseInt(parts[1].substring(4));
         Cell[][] cells = new Cell[height][width];
         int x = 0, y = 0;
-        Pattern pattern = Pattern.compile("[0-9]+");
         Matcher matcher;
         for(int i = 0; i < parts[3].toCharArray().length; i++) {
             char token = parts[3].charAt(i);
@@ -102,7 +102,7 @@ public class RLE {
                 x = 0;
             } else {
                 int runCount = 1;
-                matcher = pattern.matcher(parts[3].substring(i));
+                matcher = NUM_PATTERN.matcher(parts[3].substring(i));
                 if (matcher.find() && matcher.start() == 0) {
                     runCount = Integer.parseInt(matcher.group());
                     i += matcher.group().length();

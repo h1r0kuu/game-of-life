@@ -24,6 +24,8 @@ public class UIManager {
     private final ButtonComponent fpsCounterButton;
     private final ButtonComponent generationCounterButton;
     private final ButtonComponent drawButton;
+    private final ButtonComponent drawPauseButton;
+
     private final ButtonComponent moveButton;
     private final ButtonComponent selectButton;
     private final ButtonComponent showBorderButton;
@@ -31,24 +33,31 @@ public class UIManager {
     private final SliderComponent gameSpeedSlider;
     private final ButtonComponent gameSpeedText;
 
+    private final ButtonComponent cellInfoText;
+
     public UIManager(GameManager gameManager,
                      CanvasComponent canvas,
                      ButtonComponent pauseButton,
                      ButtonComponent fpsCounterButton,
                      ButtonComponent generationCounterButton,
                      ButtonComponent drawButton,
+                     ButtonComponent drawPauseButton,
                      ButtonComponent moveButton,
                      ButtonComponent selectButton,
                      ButtonComponent showBorderButton,
                      SliderComponent gameSpeedSlider,
-                     ButtonComponent gameSpeedText) {
+                     ButtonComponent gameSpeedText,
+                     ButtonComponent cellInfoText) {
         this.gameManager = gameManager;
 
         this.canvas = canvas;
         this.pauseButton = pauseButton;
         this.fpsCounterButton = fpsCounterButton;
         this.generationCounterButton = generationCounterButton;
+
         this.drawButton = drawButton;
+        this.drawPauseButton = drawPauseButton;
+
         this.moveButton = moveButton;
         this.selectButton = selectButton;
         this.showBorderButton = showBorderButton;
@@ -56,6 +65,7 @@ public class UIManager {
         this.gameSpeedSlider = gameSpeedSlider;
         this.gameSpeedText = gameSpeedText;
 
+        this.cellInfoText = cellInfoText;
         logger.info("UIManager init");
     }
 
@@ -102,22 +112,12 @@ public class UIManager {
     }
 
     public void handleNewStateButtonClick(MouseEvent e, UserActionState userActionState) {
-        GameManager.userActionState = userActionState;
+        gameManager.changeState(userActionState);
+    }
 
-        drawButton.setActive(false);
-        drawButton.getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
-
-        moveButton.setActive(false);
-        moveButton.getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
-
-        selectButton.setActive(false);
-        selectButton.getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);
-
-        switch (userActionState) {
-            case DRAWING -> drawButton.setActive(true);
-            case MOVING -> moveButton.setActive(true);
-            case SELECTING -> selectButton.setActive(true);
-        }
+    public void handleDrawPauseButtonClick(MouseEvent e) {
+        gameManager.setPauseWhenDraw(!gameManager.isPauseWhenDraw());
+        drawPauseButton.setActive(gameManager.isPauseWhenDraw());
     }
 
     public void handleGameSpeedSliderClickAndDragged(MouseEvent e) {
@@ -136,5 +136,21 @@ public class UIManager {
 
     public Grid getGrid() {
         return canvas.grid;
+    }
+
+    public ButtonComponent getDrawButton() {
+        return drawButton;
+    }
+
+    public ButtonComponent getMoveButton() {
+        return moveButton;
+    }
+
+    public ButtonComponent getSelectButton() {
+        return selectButton;
+    }
+
+    public void setCellInfo(int row, int col, boolean state) {
+        cellInfoText.setText(LabelUtility.getText(LabelUtility.CELL_INFO, row, col, state ? "alive" : "dead"));
     }
 }
