@@ -1,9 +1,16 @@
 package com.h1r0kuu.gameoflife.entity;
 
+import com.h1r0kuu.gameoflife.components.CanvasComponent;
+import com.h1r0kuu.gameoflife.components.CanvasWrapper;
 import com.h1r0kuu.gameoflife.manages.GameManager;
-import com.h1r0kuu.gameoflife.manages.PatternManager;
+import com.h1r0kuu.gameoflife.theme.Theme;
+import com.h1r0kuu.gameoflife.utils.RLE;
+import javafx.geometry.Bounds;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,14 +24,28 @@ public class Grid {
     public Cell[][] cellsToPaste;
     private Cell hoveredCell;
     private boolean showBorders = false;
+
     private final GraphicsContext graphics;
+    private final CanvasComponent canvas;
+
+    private final double canvasWidth;
+    private final double canvasHeight;
 
     public static final Color HOVER_COLOR = Color.web("#ff0000");
 
-    public Grid(int rows, int cols, GraphicsContext graphics) {
+    private static final int[][] NEIGHBOUR_OFFSETS = {
+            {-1, -1}, {-1, 0}, {-1, 1},
+            {0, -1},           {0, 1},
+            {1, -1},  {1, 0},  {1, 1}
+    };
+
+    public Grid(int rows, int cols, GraphicsContext graphics, CanvasComponent canvasComponent) {
         this.rows = rows;
         this.cols = cols;
         this.graphics = graphics;
+        this.canvasWidth = rows * Cell.CELL_SIZE;
+        this.canvasHeight = cols * Cell.CELL_SIZE;
+        this.canvas = canvasComponent;
         cells = new Cell[rows][cols];
     }
 
@@ -34,38 +55,55 @@ public class Grid {
                 cells[i][j] = new Cell();
             }
         }
-        PatternManager patternManager = new PatternManager();
-        Pattern pattern = patternManager.getByName("Shark loop");
-        drawPattern(pattern, getRows() / 2, getCols() / 2);
+        Pattern pattern = GameManager.patternManager.getByName("Shark loop");
+//        initPattern(pattern);
         logger.info("Grid init");
+    }
+
+    public void initPattern(Pattern pattern) {
+        clearGrid();
+        Cell[][] patternCells = RLE.decode(pattern.getRleString());
+        double centerX = cols / 2.0;
+        double centerY = rows / 2.0;
+        double startX = centerX - (patternCells[0].length / 2.0);
+        double startY = centerY - (patternCells.length / 2.0);
+        drawPattern(patternCells, (int)startX, (int)startY);
+
     }
 
 
     public void update() {
-        double canvasWidth = rows * Cell.CELL_SIZE;
-        double canvasHeight = cols * Cell.CELL_SIZE;
+        Theme currentTheme = GameManager.getCurrentTheme();
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 Cell cell = getCell(i, j);
-                Color borderColor = cell.isHovered() ? HOVER_COLOR : GameManager.getCurrentTheme().GRID;
-                Color cellColor = cell.getColor();
+                Color borderColor = cell.isHovered() ? HOVER_COLOR : currentTheme.GRID;
+                Color cellColor = cell.getColor(currentTheme);
                 drawCell(i, j, borderColor, cellColor);
-                if(showBorders) {
-                    graphics.setStroke(GameManager.getCurrentTheme().GRID.darker());
-                    graphics.setLineWidth(1);
-                    if (j % 5 == 0) {
-                        double y = j * Cell.CELL_SIZE;
-                        graphics.strokeLine(0, y, canvasWidth, y);
-                    }
-                }
             }
-            if(showBorders) {
-                if (i % 5 == 0) {
-                    double x = i * Cell.CELL_SIZE;
-                    graphics.strokeLine(x, 0, x, canvasHeight);
-                }
-            }
+        }
+
+        if(showBorders) {
+            drawBorders();
+        }
+    }
+
+    public void drawBorders() {
+        double w = Cell.CELL_SIZE;
+        double h = Cell.CELL_SIZE;
+
+        graphics.setStroke(GameManager.themeManager.getCurrentTheme().GRID.darker());
+        graphics.setLineWidth(1);
+
+        for (int i = 0; i <= rows; i += 5) {
+            double x = i * w;
+            graphics.strokeLine(x, 0, x, canvasHeight);
+        }
+
+        for (int j = 0; j <= cols; j += 5) {
+            double y = j * h;
+            graphics.strokeLine(0, y, canvasWidth, y);
         }
     }
 
@@ -88,25 +126,22 @@ public class Grid {
         }
     }
 
-    public int getAliveNeighbours(int row, int column) {
+    public int getAliveNeighbours(int row, int column, Cell[][] cells) {
         int neighbours = 0;
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                if (i == 0 && j == 0) {
-                    continue;
-                }
-                int neighbourRow = row + i;
-                int neighbourCol = column + j;
-                if (neighbourRow < 0 || neighbourRow >= rows ||
-                        neighbourCol < 0 || neighbourCol >= cols) {
-                    continue;
-                }
-                if (getCell(neighbourRow, neighbourCol).isAlive()) {
-                    neighbours++;
-                }
+        for (int[] offset : NEIGHBOUR_OFFSETS) {
+            int neighbourRow = row + offset[0];
+            int neighbourCol = column + offset[1];
+            if (neighbourRow >= 0 && neighbourRow < rows &&
+                    neighbourCol >= 0 && neighbourCol < cols &&
+                    cells[neighbourRow][neighbourCol].isAlive()) {
+                neighbours++;
             }
         }
         return neighbours;
+    }
+
+    public int getAliveNeighbours(int row, int column) {
+        return getAliveNeighbours(row, column, cells);
     }
 
     public void nextGeneration() {
@@ -118,31 +153,32 @@ public class Grid {
                 Cell cell = getCell(i,j);
                 boolean currentCellIsAlive = cell.isAlive();
                 boolean wasAlive = cell.wasAlive();
+                Cell nextGenCell = cell;
 
                 if(currentCellIsAlive && (neighbours == 2 || neighbours == 3)) {
-                    nextGeneration[i][j] = new Cell(true);
-                    nextGeneration[i][j].setWasAlive(false);
+                    nextGenCell.setWasAlive(false);
                 } else if (!currentCellIsAlive && neighbours == 3) {
-                    nextGeneration[i][j] = new Cell(true);
-                    nextGeneration[i][j].setWasAlive(false);
+                    nextGenCell = new Cell(true);
+                    nextGenCell.setWasAlive(false);
                 } else {
-                    nextGeneration[i][j] = new Cell(false);
-                    if(currentCellIsAlive) nextGeneration[i][j].setWasAlive(true);
-                    if(wasAlive) nextGeneration[i][j].setWasAlive(true);
+                    nextGenCell = new Cell(false);
+                    if(currentCellIsAlive) nextGenCell.setWasAlive(true);
+                    if(wasAlive) nextGenCell.setWasAlive(true);
                 }
-                nextGeneration[i][j].setLifeTime(cell.getLifetime());
-                nextGeneration[i][j].setDeadTime(cell.getDeadTime());
-                nextGeneration[i][j].setEvent(cell.getEvent());
-                nextGeneration[i][j].update();
+                nextGenCell.setLifeTime(cell.getLifetime());
+                nextGenCell.setDeadTime(cell.getDeadTime());
+                nextGenCell.setEvent(cell.getEvent());
+                nextGenCell.update();
 
                 if(cell.isHovered()) {
-                    nextGeneration[i][j].setHovered(true);
-                    hoveredCell = nextGeneration[i][j];
+                    nextGenCell.setHovered(true);
+                    hoveredCell = nextGenCell;
                 }
 
                 if(isSelected(cell)) {
-                    nextGeneration[i][j].setSelected(true);
+                    nextGenCell.setSelected(true);
                 }
+                nextGeneration[i][j] = nextGenCell;
             }
         }
         cells = nextGeneration;
@@ -159,6 +195,8 @@ public class Grid {
     }
 
     public void drawCell(int row, int col, Color borderColor, Color cellColor) {
+        Cell cell = getCell(row, col);
+
         double w = Cell.CELL_SIZE;
         double h = Cell.CELL_SIZE;
 
@@ -167,12 +205,7 @@ public class Grid {
 
         double borderSize = 1.0;
 
-        if (showBorders) {
-            graphics.setFill(borderColor);
-            graphics.fillRect(x, y, w, h);
-            graphics.setFill(cellColor);
-            graphics.fillRect(x + (borderSize / 2), y + (borderSize / 2), w - borderSize, h - borderSize);
-        } else if (getCell(row, col).isHovered()) {
+        if (cell.isHovered() || showBorders) {
             graphics.setFill(borderColor);
             graphics.fillRect(x, y, w, h);
             graphics.setFill(cellColor);
@@ -184,7 +217,7 @@ public class Grid {
             graphics.fillRect(x, y, w, h);
         }
 
-        if (getCell(row, col).isSelected()) {
+        if (cell.isSelected()) {
             graphics.setFill(Color.rgb(0, 0, 255, 0.7));
             graphics.fillRect(x, y, w, h);
         }
@@ -249,8 +282,8 @@ public class Grid {
         int height = cellsToPaste.length;
         int width = cellsToPaste[0].length;
 
-        int startRow = (int) Math.floor(startY / Cell.CELL_SIZE);
-        int startCol = (int) Math.floor(startX / Cell.CELL_SIZE);
+        int startRow = startY / Cell.CELL_SIZE;
+        int startCol = startX / Cell.CELL_SIZE;
         int endRow = startRow + height;
         int endCol = startCol + width;
 
@@ -287,12 +320,11 @@ public class Grid {
         }
     }
 
-    public void drawPattern(Pattern pattern, int rowStart, int colStart) {
-        Cell[][] patternCells = pattern.getCells();
+    public void drawPattern(Cell[][] patternCells, int rowStart, int colStart) {
         for(int i = rowStart, patternI = 0; (i < rowStart + patternCells.length) && (patternI < patternCells.length); i++, patternI++) {
             for(int j = colStart, patternJ = 0; (j < colStart + patternCells[0].length) && (patternJ < patternCells[0].length); j++, patternJ++) {
                 if(patternCells[patternI][patternJ].isAlive()) {
-                    getCell(i, j).setAlive(true);
+                    getCell(j, i).setAlive(true);
                 }
             }
         }
