@@ -2,11 +2,11 @@ package com.h1r0kuu.gameoflife.manages;
 
 import com.h1r0kuu.gameoflife.GameOfLife;
 import com.h1r0kuu.gameoflife.UserActionState;
-import com.h1r0kuu.gameoflife.components.ButtonComponent;
-import com.h1r0kuu.gameoflife.components.CanvasComponent;
-import com.h1r0kuu.gameoflife.components.SliderComponent;
+import com.h1r0kuu.gameoflife.components.*;
 import com.h1r0kuu.gameoflife.entity.Grid;
+import com.h1r0kuu.gameoflife.entity.Move;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +19,7 @@ public class UIManager {
 
     private final GameManager gameManager;
 
+    private final CanvasWrapper canvasWrapper;
     private final CanvasComponent canvas;
     private final ButtonComponent pauseButton;
     private final ButtonComponent fpsCounterButton;
@@ -35,7 +36,10 @@ public class UIManager {
 
     private final ButtonComponent cellInfoText;
 
+    private final ComboBoxComponent<String> patternComboBox;
+
     public UIManager(GameManager gameManager,
+                     CanvasWrapper canvasWrapper,
                      CanvasComponent canvas,
                      ButtonComponent pauseButton,
                      ButtonComponent fpsCounterButton,
@@ -47,9 +51,11 @@ public class UIManager {
                      ButtonComponent showBorderButton,
                      SliderComponent gameSpeedSlider,
                      ButtonComponent gameSpeedText,
-                     ButtonComponent cellInfoText) {
+                     ButtonComponent cellInfoText,
+                     ComboBoxComponent<String> patternComboBox) {
         this.gameManager = gameManager;
 
+        this.canvasWrapper = canvasWrapper;
         this.canvas = canvas;
         this.pauseButton = pauseButton;
         this.fpsCounterButton = fpsCounterButton;
@@ -66,6 +72,8 @@ public class UIManager {
         this.gameSpeedText = gameSpeedText;
 
         this.cellInfoText = cellInfoText;
+
+        this.patternComboBox = patternComboBox;
         logger.info("UIManager init");
     }
 
@@ -124,6 +132,25 @@ public class UIManager {
         int newGameSpeed = (int)gameSpeedSlider.getValue();
         gameManager.setGameSpeed(newGameSpeed);
         gameSpeedText.setText(LabelUtility.getText(newGameSpeed, LabelUtility.GAME_SPEED));
+    }
+
+    public void handleClickClearSelectionButton(MouseEvent e) {
+        gameManager.getGameBoardManager().clearSelectedCells();
+    }
+
+    public void handlePressMoveSelectedCellsButtons(MouseEvent e, Move move) {
+        gameManager.getGameBoardManager().moveSelectedCells(move);
+    }
+
+    public ChangeListener<? super Number> handlePatternComboboxChange() {
+        return ((observable, oldValue, newValue) -> {
+            String newPattern = patternComboBox.getItems().get((Integer)newValue);
+            canvas.grid.initPattern(GameManager.patternManager.getByName(newPattern));
+        });
+    }
+
+    public CanvasWrapper getCanvasWrapper() {
+        return canvasWrapper;
     }
 
     public ButtonComponent getFpsCounterButton() {

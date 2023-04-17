@@ -30,7 +30,7 @@ public class HotKeysHandler {
             try {
                 Cell[][] copiedCells = RLE.decode(rleString);
                 GameManager.userActionState = UserActionState.PASTING;
-                gameManager.gameBoardManager.getGrid().cellsToPaste = copiedCells;
+                gameManager.getGameBoardManager().getGrid().setCellsToPaste(copiedCells);
             } catch (RuntimeException ex) {
                 System.out.println(ex);
             }

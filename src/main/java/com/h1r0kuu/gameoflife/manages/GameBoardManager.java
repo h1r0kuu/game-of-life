@@ -2,6 +2,7 @@ package com.h1r0kuu.gameoflife.manages;
 
 import com.h1r0kuu.gameoflife.entity.Cell;
 import com.h1r0kuu.gameoflife.entity.Grid;
+import com.h1r0kuu.gameoflife.entity.Move;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +42,14 @@ public class GameBoardManager {
 
     public void redrawBoard() {
         grid.update();
+    }
+
+    public void clearSelectedCells() {
+        grid.clearSelectedCells();
+    }
+
+    public void moveSelectedCells(Move move) {
+        grid.moveSelectedCells(move);
     }
 
     public void setGameManager(GameManager gameManager) {

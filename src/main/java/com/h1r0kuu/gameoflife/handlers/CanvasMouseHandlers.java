@@ -32,7 +32,7 @@ public class CanvasMouseHandlers {
         Cell cell = canvas.grid.getCell(col, row);
         uiManager.setCellInfo(col, row, cell.isAlive());
         if(GameManager.userActionState.equals(UserActionState.PASTING)) {
-
+            canvas.grid.drawPastingRect((int)mouseX, (int)mouseY);
         }
     }
 

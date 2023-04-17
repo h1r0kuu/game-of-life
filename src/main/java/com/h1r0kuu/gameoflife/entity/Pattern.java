@@ -19,7 +19,6 @@ public class Pattern {
     }
 
     public Pattern(String name, String rleString) {
-        this.cells = RLE.decode(rleString);
         this.name = name;
         this.rleString = rleString;
     }
@@ -34,6 +33,10 @@ public class Pattern {
 
     public String getName() {
         return name;
+    }
+
+    public String getRleString() {
+        return rleString;
     }
 
     @Override

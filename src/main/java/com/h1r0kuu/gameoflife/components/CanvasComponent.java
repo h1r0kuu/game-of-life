@@ -5,6 +5,8 @@ import com.h1r0kuu.gameoflife.entity.Grid;
 import com.h1r0kuu.gameoflife.handlers.CanvasMouseHandlers;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,9 +15,13 @@ public class CanvasComponent extends Canvas {
 
     public Grid grid;
 
+    private SelectionRectangle selectionRectangle;
+
     public CanvasComponent(int width, int height) {
         super(width, height);
         init();
+        this.selectionRectangle = new SelectionRectangle();
+        this.selectionRectangle.setMouseTransparent(true);
         logger.info("CanvasComponent init");
     }
 
@@ -23,7 +29,7 @@ public class CanvasComponent extends Canvas {
         int rows = (int) Math.floor(getHeight() / Cell.CELL_SIZE);
         int cols = (int) Math.floor(getWidth() / Cell.CELL_SIZE);
         GraphicsContext graphics = this.getGraphicsContext2D();
-        this.grid = new Grid(rows, cols, graphics);
+        this.grid = new Grid(rows, cols, graphics, this);
         grid.init();
     }
 
@@ -32,5 +38,9 @@ public class CanvasComponent extends Canvas {
         this.setOnMousePressed(handler::onMousePressed);
         this.setOnMouseDragged(handler::onMouseDragged);
         this.setOnMouseReleased(handler::onMouseReleased);
+    }
+
+    public SelectionRectangle getSelectionRectangle() {
+        return selectionRectangle;
     }
 }

@@ -1,16 +1,12 @@
 package com.h1r0kuu.gameoflife.entity;
 
 import com.h1r0kuu.gameoflife.components.CanvasComponent;
-import com.h1r0kuu.gameoflife.components.CanvasWrapper;
+import com.h1r0kuu.gameoflife.components.SelectionRectangle;
 import com.h1r0kuu.gameoflife.manages.GameManager;
 import com.h1r0kuu.gameoflife.theme.Theme;
 import com.h1r0kuu.gameoflife.utils.RLE;
-import javafx.geometry.Bounds;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,6 +20,8 @@ public class Grid {
     public Cell[][] cellsToPaste;
     private Cell hoveredCell;
     private boolean showBorders = false;
+
+    private int selectStartRow, selectStartCol, selectEndRow, selectEndCol, selectedRowsLength, selectedColsLength;
 
     private final GraphicsContext graphics;
     private final CanvasComponent canvas;
@@ -175,9 +173,6 @@ public class Grid {
                     hoveredCell = nextGenCell;
                 }
 
-                if(isSelected(cell)) {
-                    nextGenCell.setSelected(true);
-                }
                 nextGeneration[i][j] = nextGenCell;
             }
         }
@@ -216,11 +211,6 @@ public class Grid {
             graphics.setFill(cellColor);
             graphics.fillRect(x, y, w, h);
         }
-
-        if (cell.isSelected()) {
-            graphics.setFill(Color.rgb(0, 0, 255, 0.7));
-            graphics.fillRect(x, y, w, h);
-        }
     }
 
     public Cell getCell(int row, int column) {
@@ -257,25 +247,20 @@ public class Grid {
         double maxY = Math.max(startY, endY);
 
 
-        int startRow = (int) Math.floor(minX / Cell.CELL_SIZE);
-        int startCol = (int) Math.floor(minY / Cell.CELL_SIZE);
+        selectStartRow = (int) Math.floor(minX / Cell.CELL_SIZE);
+        selectStartCol = (int) Math.floor(minY / Cell.CELL_SIZE);
 
-        int endRow = (int) Math.floor(maxX / Cell.CELL_SIZE);
-        int endCol = (int) Math.floor(maxY / Cell.CELL_SIZE);
-        int rows = (endRow - startRow) + 1;
-        int cols = (endCol - startCol) + 1;
+        selectEndRow = (int) Math.floor(maxX / Cell.CELL_SIZE);
+        selectEndCol = (int) Math.floor(maxY / Cell.CELL_SIZE);
+        selectedColsLength = (selectEndRow - selectStartRow) + 1;
+        selectedRowsLength = (selectEndCol - selectStartCol) + 1;
 
-        selectedCells = new Cell[cols][rows];
-
-        for (int row = startRow, i = 0; (row <= endRow) && (i < rows); row++, i++) {
-            for (int col = startCol, j = 0; (col <= endCol) && (j < cols); col++, j++) {
-                Cell cell = getCell(row, col);
-                cell.setSelected(true);
-                if (!isSelected(cell)) {
-                    selectedCells[j][i] = cell;
-                }
-            }
-        }
+        SelectionRectangle rec = canvas.getSelectionRectangle();
+        rec.setFill(Color.rgb(0,0,255,.75));
+        rec.setX(selectStartRow);
+        rec.setY(selectStartCol);
+        rec.setWidth(selectedColsLength);
+        rec.setHeight(selectedRowsLength);
     }
 
     public void pasteCells(int startX, int startY) {
@@ -295,18 +280,6 @@ public class Grid {
                 cell.setDeadTime(0);
             }
         }
-    }
-
-    public boolean isSelected(Cell cell) {
-        boolean result = false;
-        if(selectedCells != null && selectedCells.length > 0) {
-            for(int i = 0; i < selectedCells.length; i++) {
-                for (int j = 0; j < selectedCells[0].length; j++) {
-                    if(selectedCells[i][j] != null && selectedCells[i][j].equals(cell)) result = true;
-                }
-            }
-        }
-        return result;
     }
 
     public void unselectCells() {
@@ -330,6 +303,21 @@ public class Grid {
         }
     }
 
+    public void drawPastingRect(int startX, int startY) {
+        int height = cellsToPaste.length;
+        int width = cellsToPaste[0].length;
+        int startRow = startX / Cell.CELL_SIZE;
+        int startCol = startY / Cell.CELL_SIZE;
+
+        SelectionRectangle rec = canvas.getSelectionRectangle();
+        rec.setFill(Color.rgb(255,0,0,0.65));
+        rec.setX(startRow);
+        rec.setY(startCol);
+        rec.setWidth(width);
+        rec.setHeight(height);
+
+    }
+
     public int getRows() {
         return rows;
     }
@@ -347,6 +335,57 @@ public class Grid {
     }
 
     public Cell[][] getSelectedCells() {
+        Cell[][] selectedCells = new Cell[selectedRowsLength][selectedColsLength];
+        for (int row = selectStartRow, i = 0; (row <= selectEndRow) && (i < rows); row++, i++) {
+            for (int col = selectStartCol, j = 0; (col <= selectEndCol) && (j < cols); col++, j++) {
+                selectedCells[j][i] = cells[row][col];
+            }
+        }
         return selectedCells;
+    }
+
+    public void clearSelectedCells() {
+        for (int row = selectStartRow, i = 0; (row <= selectEndRow) && (i < rows); row++, i++) {
+            for (int col = selectStartCol, j = 0; (col <= selectEndCol) && (j < cols); col++, j++) {
+                cells[row][col].setAlive(false);
+            }
+        }
+    }
+
+    public void moveSelectedCells(Move move) {
+        SelectionRectangle rec = canvas.getSelectionRectangle();
+        Cell[][] prevSelectedCells = getSelectedCells();
+        switch (move) {
+            case LEFT -> {
+                selectStartRow -= 1;
+                selectEndRow -= 1;
+                rec.setX(selectStartRow);
+            }
+            case RIGHT -> {
+                selectStartRow += 1;
+                selectEndRow += 1;
+                rec.setX(selectStartRow);
+            }
+            case UP -> {
+                selectStartCol -= 1;
+                selectEndCol -= 1;
+                rec.setY(selectStartCol);
+            }
+            case DOWN -> {
+                selectStartCol += 1;
+                selectEndCol += 1;
+                rec.setY(selectStartCol);
+            }
+        }
+
+        for (int row = selectStartRow, i = 0; (row <= selectEndRow) && (i < rows); row++, i++) {
+            for (int col = selectStartCol, j = 0; (col <= selectEndCol) && (j < cols); col++, j++) {
+                cells[row][col] = prevSelectedCells[j][i];
+            }
+        }
+    }
+
+    public void setCellsToPaste(Cell[][] cellsToPaste) {
+        this.cellsToPaste = cellsToPaste;
     }
 }

@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ public class RLE {
         int height = cells.length;
         int width = cells[0].length;
 
-        sb.append(String.format("x = %d, y = %d, rule = B3/S23, ", width, height));
+        sb.append(String.format("x = %d, y = %d, rule = B3/S23\n", width, height));
         int runCount = 0;
         char tag = ' ';
         for (int i = 0; i < height; i++) {
@@ -53,24 +54,44 @@ public class RLE {
         return sb.toString();
     }
 
+    public static String getName(String content) throws IOException {
+        Scanner scanner = new Scanner(content);
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (line.trim().startsWith("#N")) {
+                return line.split(" ")[1];
+            }
+        }
+        return null;
+    }
+
     public static Cell[][] decode(String rle) {
         List<String> lines = new ArrayList<>();
         Scanner scanner = new Scanner(rle);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (!line.startsWith("#")) {
+            if (!line.trim().startsWith("#") && !line.isEmpty()) {
                 lines.add(line);
             }
         }
+        String infoLine = lines.get(0);
 
-        String[] parts = rle.split(", ");
-        int width = Integer.parseInt(parts[0].substring(4));
-        int height = Integer.parseInt(parts[1].substring(4));
+        String[] subArr = lines.subList(1, lines.size()).toArray(new String[0]);
+        String rleLine = String.join("", subArr);
+
+        String[] info = infoLine.split(", ");
+
+        int width = Integer.parseInt(info[0].split("=")[1].trim());
+        int height = Integer.parseInt(info[1].split("=")[1].trim());
+        if(width == 0 || height == 0) {
+            return new Cell[][]{};
+        }
+
         Cell[][] cells = new Cell[height][width];
         int x = 0, y = 0;
         Matcher matcher;
-        for(int i = 0; i < parts[3].toCharArray().length; i++) {
-            char token = parts[3].charAt(i);
+        for(int i = 0; i < rleLine.toCharArray().length; i++) {
+            char token = rleLine.charAt(i);
             if (token == '$') {
                 if (x < width) {
                     for (; x < width; x++) {
@@ -86,27 +107,32 @@ public class RLE {
                     }
                 }
                 break;
-            } else if(token == '2' && parts[3].charAt(i + 1) == '$') {
-                if(x < width) {
-                    for (; x < width; x++) {
-                        cells[y][x] = new Cell(false);
-                    }
-                }
-                y++;
-                x = 0;
-                for (; x < width; x++) {
-                    cells[y][x] = new Cell(false);
-                }
-                y++;
-                i++;
-                x = 0;
-            } else {
+            }
+            else {
                 int runCount = 1;
-                matcher = NUM_PATTERN.matcher(parts[3].substring(i));
+                matcher = NUM_PATTERN.matcher(rleLine.substring(i));
                 if (matcher.find() && matcher.start() == 0) {
                     runCount = Integer.parseInt(matcher.group());
                     i += matcher.group().length();
-                    token = parts[3].charAt(i);
+                    token = rleLine.charAt(i);
+                }
+
+                if(token == '$') {
+                    if(x < width) {
+                        for (; x < width; x++) {
+                            cells[y][x] = new Cell(false);
+                        }
+                    }
+                    y++;
+                    for (int j = 0; j < runCount; j++) {
+                        x = 0;
+                        for (; x < width; x++) {
+                            cells[y][x] = new Cell(false);
+                        }
+                        x = 0;
+                        if(j != runCount - 1) y++;
+                    }
+                    continue;
                 }
 
                 for (int j = 0; j < runCount; j++) {
@@ -114,8 +140,6 @@ public class RLE {
                         cells[y][x++] = new Cell(false);
                     } else if (token == ALIVE_CHAR) {
                         cells[y][x++] = new Cell(true);
-                    } else {
-                        throw new IllegalArgumentException("Invalid RLE tag: " + token);
                     }
                 }
             }
@@ -126,7 +150,7 @@ public class RLE {
         return cells;
     }
 
-    public static Cell[][] read(String filename) throws IOException {
+    public static String read(String filename) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         StringBuilder sb = new StringBuilder();
         String line;
@@ -134,7 +158,6 @@ public class RLE {
             sb.append(line).append("\n");
         }
         reader.close();
-        String rle = sb.toString();
-        return decode(rle);
+        return sb.toString();
     }
 }

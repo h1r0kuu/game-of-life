@@ -21,6 +21,7 @@ public class GameManager {
 
     public static UserActionState userActionState = UserActionState.DRAWING;
     public static final ThemeManager themeManager = new ThemeManager();
+    public static final PatternManager patternManager = new PatternManager();
     public static Theme getCurrentTheme() { return themeManager.getCurrentTheme(); }
 
     public GameManager(GameLoopManager gameLoopManager,
@@ -92,6 +93,7 @@ public class GameManager {
 
     public void changeState(UserActionState newState) {
         userActionState = newState;
+        if(newState != UserActionState.MOVING) getUiManager().getCanvasWrapper().setPannable(false);
 
         getUiManager().getDrawButton().setActive(false);
         getUiManager().getDrawButton().getRectangle().setFill(ButtonComponent.IDLE_BUTTON_COLOR);

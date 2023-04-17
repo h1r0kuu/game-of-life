@@ -10,6 +10,7 @@ public class ButtonComponent extends Group {
     private RectangleComponent rectangleComponent;
     private LabelComponent labelComponent;
     private ImageViewComponent image;
+    private DropdownButtonComponent dropdown;
 
     private boolean isActive = false;
 
@@ -79,7 +80,13 @@ public class ButtonComponent extends Group {
     }
 
     public void setActive(boolean active) {
+        if(dropdown != null) dropdown.toggleSubButtons(active);
         isActive = active;
         if(active) rectangleComponent.setFill(DEFAULT_ACTIVE_FILL);
+    }
+
+    public void setDropdown(DropdownButtonComponent dropdown) {
+        this.dropdown = dropdown;
+        dropdown.toggleSubButtons(isActive());
     }
 }

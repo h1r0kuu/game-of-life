@@ -17,6 +17,7 @@ public class Cell {
     private int lifetime = 0;
     private int deadTime = 0;
     public static final int CELL_SIZE = 10;
+    private static final int CELL_SHADE_SPEED = 25;
 
     public Cell() {}
 
@@ -35,8 +36,7 @@ public class Cell {
         }
     }
 
-    public Color getColor() {
-        Theme currentTheme = GameManager.getCurrentTheme();
+    public Color getColor(Theme currentTheme) {
         if (lifetime == 0 && !wasAlive && !isAlive) {
             return currentTheme.BACKGROUND;
         } else if ((wasAlive && !isAlive) || (Objects.equals(event, CellEvent.KILL))) {
@@ -76,17 +76,17 @@ public class Cell {
                 ramp = rampBlue;
             }
             default -> {
-                int redMax = 160 - (time + 1);
+                int redMax = 160 - (time + CELL_SHADE_SPEED);
                 redMax = Math.max(redMax, 60);
                 return Color.rgb(redMax, 0, 0);
             }
         }
 
         if (shadeDir == CellShadeDirection.MAX) {
-            value -= (time + 5);
+            value -= (time + CELL_SHADE_SPEED);
             value = Math.max(value, ramp);
         } else {
-            value += (time + 5);
+            value += (time + CELL_SHADE_SPEED);
             value = Math.min(value, ramp);
         }
 
