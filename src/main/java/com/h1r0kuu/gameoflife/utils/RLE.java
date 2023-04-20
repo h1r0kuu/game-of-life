@@ -1,12 +1,11 @@
 package com.h1r0kuu.gameoflife.utils;
 
-import com.h1r0kuu.gameoflife.entity.Cell;
+import com.h1r0kuu.gameoflife.models.Cell;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -17,12 +16,12 @@ public class RLE {
     private static final char DEAD_CHAR = 'b';
     private static final Pattern NUM_PATTERN = Pattern.compile("[0-9]+");
 
-    public static String encode(Cell[][] cells) {
+    public static String encode(Cell[][] cells, String rule) {
         StringBuilder sb = new StringBuilder();
         int height = cells.length;
         int width = cells[0].length;
 
-        sb.append(String.format("x = %d, y = %d, rule = B3/S23\n", width, height));
+        sb.append(String.format("x = %d, y = %d, rule = %s\n", width, height, rule));
         int runCount = 0;
         char tag = ' ';
         for (int i = 0; i < height; i++) {

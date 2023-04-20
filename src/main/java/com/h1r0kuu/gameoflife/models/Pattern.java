@@ -2,7 +2,6 @@ package com.h1r0kuu.gameoflife.models;
 
 import com.h1r0kuu.gameoflife.utils.RLE;
 
-import java.util.HashMap;
 import java.util.Scanner;
 
 public class Pattern {
@@ -10,7 +9,7 @@ public class Pattern {
     private String author;
     private int width;
     private int height;
-    private String rleString;
+    private final String rleString;
     private String rule;
 
     public Pattern(String name, Cell[][] cells) {

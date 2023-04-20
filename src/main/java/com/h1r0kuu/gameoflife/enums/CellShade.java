@@ -1,4 +1,4 @@
-package com.h1r0kuu.gameoflife.theme;
+package com.h1r0kuu.gameoflife.enums;
 
 public enum CellShade {
     R,

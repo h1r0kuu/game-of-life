@@ -1,8 +1,8 @@
 package com.h1r0kuu.gameoflife.manages;
 
-import com.h1r0kuu.gameoflife.theme.CellShade;
-import com.h1r0kuu.gameoflife.theme.CellShadeDirection;
-import com.h1r0kuu.gameoflife.theme.Theme;
+import com.h1r0kuu.gameoflife.enums.CellShade;
+import com.h1r0kuu.gameoflife.enums.CellShadeDirection;
+import com.h1r0kuu.gameoflife.models.Theme;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

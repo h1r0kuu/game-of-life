@@ -79,7 +79,6 @@ public class LifeLikeRule implements Rule {
     private boolean getsBirth(int n) {
         if (birthNeighboursCounts.contains(n)) {
             return true;
-
         } else {
             return false;
         }

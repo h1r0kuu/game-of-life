@@ -1,9 +1,9 @@
 package com.h1r0kuu.gameoflife.handlers;
 
-import com.h1r0kuu.gameoflife.UserActionState;
-import com.h1r0kuu.gameoflife.entity.Cell;
+import com.h1r0kuu.gameoflife.enums.UserActionState;
 import com.h1r0kuu.gameoflife.manages.GameManager;
-import com.h1r0kuu.gameoflife.components.ButtonComponent;
+import com.h1r0kuu.gameoflife.models.Cell;
+import com.h1r0kuu.gameoflife.service.grid.IGridService;
 import com.h1r0kuu.gameoflife.utils.RLE;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -13,16 +13,18 @@ import javafx.scene.input.KeyEvent;
 public class HotKeysHandler {
 
     private final GameManager gameManager;
+    private final IGridService iGridService;
 
-    public HotKeysHandler(GameManager gameManager) {
+    public HotKeysHandler(GameManager gameManager, IGridService iGridService) {
         this.gameManager = gameManager;
+        this.iGridService = iGridService;
     }
 
     public void onKeyPressed(KeyEvent e) {
         if (e.isControlDown() && e.getCode() == KeyCode.C) {
             ClipboardContent content = new ClipboardContent();
-            Cell[][] selectedCells = gameManager.gameBoardManager.getGrid().getSelectedCells();
-            content.putString(RLE.encode(selectedCells));
+            Cell[][] selectedCells = iGridService.getSelectedCells();
+            content.putString(RLE.encode(selectedCells, "B3/S23"));
             Clipboard.getSystemClipboard().setContent(content);
             e.consume();
         } else if(e.isControlDown() && e.getCode() == KeyCode.V) {
@@ -30,26 +32,26 @@ public class HotKeysHandler {
             try {
                 Cell[][] copiedCells = RLE.decode(rleString);
                 GameManager.userActionState = UserActionState.PASTING;
-                gameManager.getGameBoardManager().getGrid().setCellsToPaste(copiedCells);
+                gameManager.getGrid().setCellsToPaste(copiedCells);
             } catch (RuntimeException ex) {
                 System.out.println(ex);
             }
         } else if(e.getCode() == KeyCode.X) {
-            gameManager.getUiManager().toggleShowBorder();
+//            gameManager.getUiManager().toggleShowBorder();
         } else if(e.getCode() == KeyCode.PAUSE || e.getCode() == KeyCode.HOME) {
             gameManager.setPaused(!gameManager.isPaused());
         } else if(e.getCode() == KeyCode.A) {
-            gameManager.gameBoardManager.previousGeneration();
-            gameManager.gameBoardManager.previousGeneration();
+            gameManager.previousGeneration();
         } else if(e.getCode() == KeyCode.D) {
-            gameManager.gameBoardManager.nextGeneration();
+            gameManager.nextGeneration();
         } else if(e.getCode() == KeyCode.C) {
             GameManager.themeManager.nextTheme();
+
         } else if(e.getCode() == KeyCode.R) {
-            gameManager.gameBoardManager.clearBoard();
+            gameManager.clearBoard();
         } else if(e.getCode() == KeyCode.F) {
-            ButtonComponent fpsCounterButton = gameManager.getUiManager().getFpsCounterButton();;
-            fpsCounterButton.setVisible(!fpsCounterButton.isVisible());
+//            ButtonComponent fpsCounterButton = gameManager.getUiManager().getFpsCounterButton();;
+//            fpsCounterButton.setVisible(!fpsCounterButton.isVisible());
         }
     }
 }

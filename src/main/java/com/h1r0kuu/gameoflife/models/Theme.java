@@ -1,5 +1,7 @@
-package com.h1r0kuu.gameoflife.theme;
+package com.h1r0kuu.gameoflife.models;
 
+import com.h1r0kuu.gameoflife.enums.CellShade;
+import com.h1r0kuu.gameoflife.enums.CellShadeDirection;
 import javafx.scene.paint.Color;
 
 

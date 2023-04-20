@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<fx:root fx:id="box" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../style/application.css" type="VBox" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <MenuBar>
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Close" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Delete" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="About" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="720.0" prefWidth="1024.0" style="-fx-background-color: #666;">
+            <right>
+                <Pane prefHeight="606.0" prefWidth="214.0" BorderPane.alignment="CENTER">
+                    <children>
+                  <TextField fx:id="searchBar" layoutX="16.0" layoutY="242.0" prefHeight="25.0" prefWidth="187.0" promptText="Type pattern name" styleClass="search_bar" />
+                  <ListView fx:id="patternList" layoutX="15.0" layoutY="276.0" prefHeight="377.0" prefWidth="188.0" styleClass="pattern_list" />
+                  <Pane layoutX="10.0" layoutY="107.0" prefHeight="200.0" prefWidth="200.0" />
+                  <Group>
+                     <children>
+                        <Pane fx:id="selectButtonGroup" prefHeight="200.0" prefWidth="200.0" visible="false">
+                           <children>
+                                    <Button fx:id="moveSelectionLeft" layoutX="9.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/left-arrow.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge left" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="rotateSelectionRight" layoutX="58.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/rotate-right.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Rotate clockwise" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="inverseSelectedCells" layoutX="107.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/invert-selection.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Invert cells in selection" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="moveSelectionDown" layoutX="155.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/down-arrow.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge down" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="moveSelectionRight" layoutX="59.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/right-arrow.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge right" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="moveSelectionUp" layoutX="107.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/up-arrow.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge up" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="rotateSelectionLeft" layoutX="9.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/rotate-left.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Rotate counter-clockwise" />
+                                 </tooltip>
+                              </Button>
+                                    <Button fx:id="cancelSelection" layoutX="155.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/selection-cancel.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="pasteAnd" layoutX="9.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/and.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Paste mode" />
+                                 </tooltip>
+                              </Button>
+                              <Button fx:id="pasteXor" layoutX="155.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/xor.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge down" />
+                                 </tooltip>
+                              </Button>
+                              <Button fx:id="pasteCpy" layoutX="58.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/cpy.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Paste mode" />
+                                 </tooltip>
+                              </Button>
+                              <Button fx:id="pasteOr" layoutX="107.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.76);;" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/or.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Nudge up" />
+                                 </tooltip>
+                              </Button>
+                              <Slider fx:id="randomProbability" layoutX="9.0" layoutY="135.0" majorTickUnit="8.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="50.0" />
+                              <Label fx:id="randomProbabilityLabel" layoutX="22.0" layoutY="144.0" mouseTransparent="true" prefHeight="17.0" prefWidth="30.0" text="50 %" textFill="WHITE" />
+                           </children>
+                        </Pane>
+                        <Pane fx:id="drawButtonGroup" prefHeight="200.0" prefWidth="200.0">
+                           <children>
+                              <Button fx:id="pauseOnDraw" layoutX="8.0" layoutY="7.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.76);" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/pen_pause.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="toggle play while drawing" />
+                                 </tooltip>
+                              </Button>
+                           </children>
+                        </Pane>
+                     </children>
+                  </Group>
+                    </children>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </Pane>
+            </right>
+            <bottom>
+                <Pane prefHeight="62.0" prefWidth="1024.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <Button fx:id="playButton" layoutX="392.0" layoutY="16.0" maxHeight="25.0" maxWidth="25" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                            <graphic>
+                                <ImageView fx:id="playImage" fitHeight="25" fitWidth="25.0">
+                               <image>
+                                  <Image url="@../images/play.png" />
+                               </image>
+                                </ImageView>
+                            </graphic>
+                     <tooltip>
+                        <Tooltip text="Play" />
+                     </tooltip>
+                        </Button>
+                        <Button fx:id="nextGenerationButton" layoutX="443.0" layoutY="17.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="28.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/next.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Step forward" />
+                     </tooltip></Button>
+                        <Button fx:id="previousGenerationButton" layoutX="339.0" layoutY="16.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/previous.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Step back" />
+                     </tooltip></Button>
+                        <Slider fx:id="gameSpeed" layoutX="264.0" layoutY="17.0" majorTickUnit="8.0" max="64.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="10.0" />
+                        <Label fx:id="gameSpeedLabel" layoutX="274.0" layoutY="25.0" mouseTransparent="true" prefHeight="17.0" prefWidth="46.0" text="10 gps" textFill="WHITE" />
+                  <Label layoutX="14.0" layoutY="21.0" text="T 0" textFill="WHITE">
+                     <font>
+                        <Font size="29.0" />
+                     </font></Label>
+                  <Label fx:id="cellInfo" layoutX="14.0" layoutY="5.0" text="0,0=dead" textFill="WHITE" />
+                    </children>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </Pane>
+            </bottom>
+            <top>
+                <Pane BorderPane.alignment="CENTER">
+                    <children>
+                        <Button fx:id="drawButton" layoutX="136.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="28.0" style="-fx-background-color: rgb(255, 0, 0, 0.76);" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/pen.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Draw" />
+                     </tooltip></Button>
+                        <Button fx:id="selectButton" layoutX="187.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="28.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/select.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Select" />
+                     </tooltip></Button>
+                        <Button fx:id="moveButton" layoutX="237.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/pan.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Pan" />
+                     </tooltip></Button>
+                        <Button fx:id="zoomIn" layoutX="318.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/zoom-in.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Zoom in" />
+                     </tooltip></Button>
+                        <Button fx:id="zoomOut" layoutX="367.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/zoom-out.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Zoom out" />
+                     </tooltip></Button>
+                        <Button fx:id="showBorderButton" layoutX="416.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/grid.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Toggle gridlines" />
+                     </tooltip></Button>
+                        <Button fx:id="autoFitPattern" layoutX="14.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/fit-to-pattern-auto.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Auto fit" />
+                     </tooltip></Button>
+                        <Button fx:id="fitPattern" layoutX="61.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/fit-to-pattern.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Fit pattern to display" />
+                     </tooltip></Button>
+                        <ComboBox fx:id="themes" layoutX="465.0" layoutY="11.0" prefHeight="32.0" prefWidth="95.0" styleClass="themes" />
+                    </children>
+                    <BorderPane.margin>
+                        <Insets />
+                    </BorderPane.margin>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </Pane>
+            </top>
+            <left>
+                <Pane prefHeight="606.0" prefWidth="70.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <Button fx:id="openPattern" layoutX="13.0" layoutY="52.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/open-pattern.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Open pattern" />
+                     </tooltip></Button>
+                        <Button fx:id="savePattern" layoutX="12.0" layoutY="92.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/save-pattern.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Save pattern" />
+                     </tooltip></Button>
+                        <Button fx:id="takePatternPicture" layoutX="13.0" layoutY="132.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/take-pattern-picture.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Take pattern screenshot" />
+                     </tooltip></Button>
+                        <Button fx:id="newPattern" layoutX="13.0" layoutY="14.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/new-pattern.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="New pattern" />
+                     </tooltip></Button>
+                    </children>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </Pane>
+            </left>
+         <center>
+             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="591.0" prefWidth="716.0" vbarPolicy="NEVER" BorderPane.alignment="TOP_LEFT">
+                 <content>
+                  <VBox fx:id="canvasOuter" alignment="CENTER" style="-fx-background-color: rgb(40,40,40);">
+                     <children>
+                        <Group fx:id="zoomNode">
+                           <children>
+                                 <StackPane fx:id="canvasContainer">
+                                 <Canvas fx:id="canvas" height="2046.0" width="2046.0" />
+                                 <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                 <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                 </StackPane>
+                           </children>
+                        </Group>
+                     </children>
+                  </VBox>
+                 </content>
+             </ScrollPane>
+         </center>
+        </BorderPane>
+    </children>
+</fx:root>

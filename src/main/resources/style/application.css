@@ -1,0 +1,59 @@
+.button {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: rgb(0, 0, 0, 0.76);
+    -fx-border-width: 1px;
+}
+
+.button:hover {
+    -fx-background-color: rgb(255, 0, 0, 0.76);
+}
+
+.themes {
+    -fx-background-color: rgb(0, 0, 0, 0.76);
+}
+
+.themes .arrow {
+    -fx-background-color: rgb(255, 255, 255);
+}
+
+.themes .list-view {
+    -fx-background-color: rgb(80,80,80);
+    -fx-background-insets: 0, 1;
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 8, 0.0 , 0 , 0 );
+}
+
+.themes .list-view .list-cell, .list-cell:filled:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgb(255,255,255);
+}
+
+.themes .list-view .list-cell:filled:hover,
+.pattern_list .list-cell:filled:hover,
+.list-cell:filled:selected:hover {
+    -fx-background: -fx-accent;
+    -fx-background-color: -fx-selection-bar;
+    -fx-text-fill: -fx-selection-bar-text;
+}
+
+.search_bar,
+.pattern_list,
+.pattern_list .list-cell {
+    -fx-background-color: rgb(80, 80, 80);
+    -fx-text-fill: white;
+}
+
+.slider {
+    -track-color: rgb(80, 80, 80);;
+}
+
+.slider .track {
+    -fx-background-color: -track-color;
+    -fx-pref-height: 30px;
+}
+
+.slider .thumb {
+    -fx-background-color: rgb(0, 0, 0);
+    -fx-pref-height: 30px;
+    -fx-pref-width: 5px;
+    -fx-background-radius: 0;
+}
