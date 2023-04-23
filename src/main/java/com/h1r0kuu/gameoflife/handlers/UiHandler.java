@@ -39,6 +39,14 @@ public class UiHandler {
         gameSpeed.setStyle(style);
     }
 
+    public void handleRandomProbabilityChange(Number new_val, Label randomProbablityLabel, Slider randomProbability) {
+        int newValue = new_val.intValue();
+        randomProbablityLabel.setText(LabelUtility.getText(LabelUtility.GAME_SPEED, newValue));
+        int percentage = (int) ((newValue * 100) / randomProbability.getMax());
+        String style = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", percentage, percentage);
+        randomProbability.setStyle(style);
+    }
+
     public void handleOnPauseOnDrawButtonClick(MouseEvent e, Button pauseOnDraw) {
         boolean isPauseWhenDraw = gameManager.isPauseWhenDraw();
         gameManager.setPauseWhenDraw(!isPauseWhenDraw);

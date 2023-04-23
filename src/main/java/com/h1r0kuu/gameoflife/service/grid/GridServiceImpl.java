@@ -59,9 +59,12 @@ public class GridServiceImpl implements IGridService {
 
     @Override
     public void randomize(double probability) {
-        for (int i = 0; i < grid.getCells().length; i++) {
-            if (Math.random() <= probability / 100) {
-                grid.getCell(i).setAlive(true);
+        clearSelectedCells();
+        for (int row = grid.getRectangle().getSelectStartRow(); row <= grid.getRectangle().getSelectEndRow(); row++) {
+            for (int col = grid.getRectangle().getSelectStartCol(); col <= grid.getRectangle().getSelectEndCol(); col++) {
+                if (Math.random() <= probability / 100) {
+                    grid.getCell(row, col).setAlive(true);
+                }
             }
         }
     }

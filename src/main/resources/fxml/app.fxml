@@ -50,10 +50,9 @@
                     <children>
                   <TextField fx:id="searchBar" layoutX="16.0" layoutY="242.0" prefHeight="25.0" prefWidth="187.0" promptText="Type pattern name" styleClass="search_bar" />
                   <ListView fx:id="patternList" layoutX="15.0" layoutY="276.0" prefHeight="377.0" prefWidth="188.0" styleClass="pattern_list" />
-                  <Pane layoutX="10.0" layoutY="107.0" prefHeight="200.0" prefWidth="200.0" />
                   <Group>
                      <children>
-                        <Pane fx:id="selectButtonGroup" prefHeight="200.0" prefWidth="200.0" visible="false">
+                        <Pane fx:id="selectButtonGroup" prefHeight="200.0" prefWidth="200.0">
                            <children>
                                     <Button fx:id="moveSelectionLeft" layoutX="9.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                                  <graphic>
@@ -184,7 +183,7 @@
                                     <Tooltip text="Paste mode" />
                                  </tooltip>
                               </Button>
-                              <Button fx:id="pasteOr" layoutX="107.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.76);;" styleClass="button">
+                              <Button fx:id="pasteOr" layoutX="107.0" layoutY="6.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.60);;" styleClass="button">
                                  <graphic>
                                     <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
@@ -198,9 +197,21 @@
                               </Button>
                               <Slider fx:id="randomProbability" layoutX="9.0" layoutY="135.0" majorTickUnit="8.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="50.0" />
                               <Label fx:id="randomProbabilityLabel" layoutX="22.0" layoutY="144.0" mouseTransparent="true" prefHeight="17.0" prefWidth="30.0" text="50 %" textFill="WHITE" />
+                              <Button fx:id="randomize" layoutX="72.0" layoutY="135.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                                 <graphic>
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/randomize.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="random fill" />
+                                 </tooltip>
+                              </Button>
                            </children>
                         </Pane>
-                        <Pane fx:id="drawButtonGroup" prefHeight="200.0" prefWidth="200.0">
+                        <Pane fx:id="drawButtonGroup" prefHeight="200.0" prefWidth="200.0" visible="false">
                            <children>
                               <Button fx:id="pauseOnDraw" layoutX="8.0" layoutY="7.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.76);" styleClass="button">
                                  <graphic>
@@ -225,7 +236,7 @@
                 </Pane>
             </right>
             <bottom>
-                <Pane prefHeight="62.0" prefWidth="1024.0" BorderPane.alignment="CENTER">
+                <Pane prefHeight="62.0" prefWidth="1020.0" BorderPane.alignment="CENTER">
                     <children>
                         <Button fx:id="playButton" layoutX="392.0" layoutY="16.0" maxHeight="25.0" maxWidth="25" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                             <graphic>
@@ -429,7 +440,7 @@
                 </Pane>
             </left>
          <center>
-             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="591.0" prefWidth="716.0" vbarPolicy="NEVER" BorderPane.alignment="TOP_LEFT">
+             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" hmin="1.0" style="-fx-background-color: rgb(40,40,40);" vbarPolicy="NEVER" vmin="1.0" BorderPane.alignment="TOP_LEFT">
                  <content>
                   <VBox fx:id="canvasOuter" alignment="CENTER" style="-fx-background-color: rgb(40,40,40);">
                      <children>
