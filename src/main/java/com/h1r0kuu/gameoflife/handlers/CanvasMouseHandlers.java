@@ -9,12 +9,15 @@ import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.LabelUtility;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
+
 public class CanvasMouseHandlers {
 
     private final GameManager gameManager;
     private final Grid grid;
     private final IGridService gridService;
     private final Label cellInfo;
+    private final int rows;
+    private final int cols;
 
     private double mouseX;
     private double mouseY;
@@ -24,10 +27,13 @@ public class CanvasMouseHandlers {
     private double endY;
     private double selectX;
     private double selectY;
+    private int prevRow, prevCol;
     public CanvasMouseHandlers(GameManager gameManager, IGridService gridService, Grid grid, Label cellInfo) {
         this.gameManager = gameManager;
         this.gridService = gridService;
         this.grid = grid;
+        this.rows = grid.getRows();
+        this.cols = grid.getCols();
         this.cellInfo = cellInfo;
     }
 
@@ -36,89 +42,96 @@ public class CanvasMouseHandlers {
         mouseY = e.getY();
         startX = e.getX();
         startY = e.getY();
-        if (mouseX < 0 || mouseY < 0 ||
-                mouseX >= grid.getRows() * Constants.CELL_SIZE || mouseY >= grid.getCols() * Constants.CELL_SIZE) {
+
+        if (mouseX < 0 || mouseY < 0 || mouseX >= rows * Constants.CELL_SIZE || mouseY >= cols * Constants.CELL_SIZE) {
             return;
         }
+
         int row = (int) (mouseY / Constants.CELL_SIZE);
         int col = (int) (mouseX / Constants.CELL_SIZE);
-        Cell cell = grid.getCell(row, col);
-        cellInfo.setText(LabelUtility.getText(LabelUtility.CELL_INFO, row, col, cell.isAlive() ? "alive" : "dead"));
 
-        if(GameManager.userActionState.equals(UserActionState.PASTING)) {
+        if (GameManager.userActionState.equals(UserActionState.PASTING)) {
             Cell[][] cellsToPaste = grid.getCellsToPaste();
             grid.getRectangle().drawPasteRectangle(cellsToPaste, (int)mouseX, (int)mouseY);
+        } else if (row != prevRow || col != prevCol) {
+            prevRow = row;
+            prevCol = col;
+            Cell cell = grid.getCell(row, col);
+            cellInfo.setText(LabelUtility.getText(LabelUtility.CELL_INFO, row, col, cell.isAlive() ? "alive" : "dead"));
         }
     }
 
     public void onMousePressed(MouseEvent e) {
-        endX = e.getX();
-        endY = e.getY();
+        int x = (int)e.getX();
+        int y = (int)e.getY();
 
-        UserActionState userActionState = GameManager.userActionState;
-
-        if(userActionState.equals(UserActionState.DRAWING)) {
-            if(gameManager.isPauseWhenDraw()) gameManager.setPaused(true);
-            int row = (int) (startY / Constants.CELL_SIZE);
-            int col = (int) (startX / Constants.CELL_SIZE);
-
-            if(e.isPrimaryButtonDown()) {
-                gridService.reviveCell(row, col);
-            } else {
-                gridService.killCell(row, col);
+        switch (GameManager.userActionState) {
+            case DRAWING -> {
+                if (gameManager.isPauseWhenDraw()) {
+                    gameManager.setPaused(true);
+                }
+                int row = (int) (startY / Constants.CELL_SIZE);
+                int col = (int) (startX / Constants.CELL_SIZE);
+                if (e.isPrimaryButtonDown()) {
+                    gridService.reviveCell(row, col);
+                } else {
+                    gridService.killCell(row, col);
+                }
             }
-        } else if(userActionState.equals(UserActionState.SELECTING)) {
-            selectX = e.getX();
-            selectY = e.getY();
-        } else if(userActionState.equals(UserActionState.PASTING)) {
-            gridService.pasteCells((int)mouseX, (int)mouseY);
-            GameManager.userActionState = UserActionState.SELECTING;
-            grid.getRectangle().getRectangleForPaste().setHeight(0);
-            grid.getRectangle().getRectangleForPaste().setWidth(0);
+            case SELECTING -> {
+                selectX = x;
+                selectY = y;
+            }
+            case PASTING -> {
+                gridService.pasteCells((int) mouseX, (int) mouseY);
+                GameManager.userActionState = UserActionState.SELECTING;
+                grid.getRectangle().getRectangleForPaste().setHeight(0);
+                grid.getRectangle().getRectangleForPaste().setWidth(0);
+            }
         }
     }
 
     public void onMouseDragged(MouseEvent e) {
         if (mouseX < 0 || mouseY < 0 ||
-            mouseX >= grid.getRows() * Constants.CELL_SIZE || mouseY >= grid.getCols() * Constants.CELL_SIZE) {
+            mouseX >= rows * Constants.CELL_SIZE || mouseY >= cols * Constants.CELL_SIZE) {
             return;
         }
         int cellStartRow = (int) Math.floor(startY / Constants.CELL_SIZE);
         int cellStartCol = (int) Math.floor(startX / Constants.CELL_SIZE);
-        int cellEndRow = (int) Math.floor((int)e.getY() / Constants.CELL_SIZE);
-        int cellEndCol = (int) Math.floor((int)e.getX() / Constants.CELL_SIZE);
+        int cellEndRow = (int) Math.floor(e.getY() / Constants.CELL_SIZE);
+        int cellEndCol = (int) Math.floor(e.getX() / Constants.CELL_SIZE);
+        switch (GameManager.userActionState) {
+            case DRAWING -> {
+                    int dx = Math.abs(cellEndRow - cellStartRow);
+                    int dy = Math.abs(cellEndCol - cellStartCol);
+                    int sx = cellStartRow < cellEndRow ? 1 : -1;
+                    int sy = cellStartCol < cellEndCol ? 1 : -1;
+                    int err = dx - dy;
 
-        if (GameManager.userActionState.equals(UserActionState.DRAWING)) {
-            if (cellStartRow >= 0 && cellStartRow < grid.getCols() && cellStartCol >= 0 && cellStartCol < grid.getRows()) {
-                // Interpolate cells using Bresenham's line algorithm
-                int dx = Math.abs(cellEndRow - cellStartRow);
-                int dy = Math.abs(cellEndCol - cellStartCol);
-                int sx = cellStartRow < cellEndRow ? 1 : -1;
-                int sy = cellStartCol < cellEndCol ? 1 : -1;
-                int err = dx - dy;
+                    while (true) {
+                        if (e.isPrimaryButtonDown()) {
+                            gridService.reviveCell(cellStartRow, cellStartCol);
+                        } else {
+                            gridService.killCell(cellStartRow, cellStartCol);
+                        }
+                        if (cellStartRow == cellEndRow && cellStartCol == cellEndCol) {
+                            break;
+                        }
+                        int e2 = 2 * err;
+                        if (e2 > -dy) {
+                            err -= dy;
+                            cellStartRow += sx;
+                        }
+                        if (e2 < dx) {
+                            err += dx;
+                            cellStartCol += sy;
+                        }
+                    }
 
-                while (true) {
-                    if (e.isPrimaryButtonDown()) {
-                        gridService.reviveCell(cellStartRow, cellStartCol);
-                    } else {
-                        gridService.killCell(cellStartRow, cellStartCol);
-                    }
-                    if (cellStartRow == cellEndRow && cellStartCol == cellEndCol) {
-                        break;
-                    }
-                    int e2 = 2 * err;
-                    if (e2 > -dy) {
-                        err -= dy;
-                        cellStartRow += sx;
-                    }
-                    if (e2 < dx) {
-                        err += dx;
-                        cellStartCol += sy;
-                    }
-                }
             }
-        } else if (GameManager.userActionState.equals(UserActionState.SELECTING)) {
-            grid.getRectangle().selectRange(selectX, selectY, e.getX(), e.getY());
+            case SELECTING -> {
+                grid.getRectangle().selectRange(selectX, selectY, e.getX(), e.getY());
+            }
         }
 
         startX = (int) e.getX();

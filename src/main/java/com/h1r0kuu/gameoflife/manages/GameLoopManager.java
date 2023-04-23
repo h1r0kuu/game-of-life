@@ -16,6 +16,12 @@ public class GameLoopManager {
     //    private ButtonComponent fpsCounterButton;
     private IGridService IGridService;
 
+    private final long timePerFrame = (long) (1_000_000_000.0 / Constants.FPS_SET);
+    private long lastFrame = 0;
+    private int frames = 0;
+    private long lastCheck = 0;
+    private long lastUpdate = 0;
+
 
     public GameLoopManager(GameManager gameManager, IGridService IGridService, LifeRenderer lifeRenderer) {
         logger.info("GameLoopManager init");
@@ -29,40 +35,40 @@ public class GameLoopManager {
         logger.info("Timer creation");
         this.animationTimer = new AnimationTimer() {
 
-            final double timePerFrame = 1_000_000_000.0 / Constants.FPS_SET;
-            long lastFrame = System.nanoTime();
-            long now;
-            int frames = 0;
-            long lastCheck = System.currentTimeMillis();
-            long lastUpdate = System.currentTimeMillis();
-
             @Override
-            public void handle(long l) {
-                long updateInterval = (long) (1000.0 / gameManager.getGameSpeed());
-                now = System.nanoTime();
-                if (now - lastFrame >= timePerFrame) {
-                    lifeRenderer.redraw();
+            public void handle(long now) {
+                if (lastFrame == 0) {
                     lastFrame = now;
-                    frames++;
+                    lastCheck = System.nanoTime();
+                    lastUpdate = System.nanoTime();
+                    return;
                 }
 
-                if (System.currentTimeMillis() - lastCheck >= 1000) {
-                    lastCheck = System.currentTimeMillis();
-//                    fpsCounterButton.setText(LabelUtility.getText(frames, LabelUtility.FPS));
+                long elapsedNanos = now - lastFrame;
+                if (elapsedNanos < timePerFrame) {
+                    return;
+                }
+
+                lastFrame = now;
+
+                lifeRenderer.redraw();
+                frames++;
+
+                long elapsedMillis = (System.nanoTime() - lastCheck) / 1_000_000L;
+                if (elapsedMillis >= 1000) {
+                    lastCheck = System.nanoTime();
                     double percentage = (frames - 1) / ((Constants.FPS_SET / 2.0) - 1);
                     int rValue = (int) ((1 - percentage) * 255);
                     int gValue = (int) (percentage * 255);
-//                    fpsCounterButton.setTextFill(Color.rgb(rValue, gValue, 0));
                     System.out.println(frames);
-
                     frames = 0;
                 }
 
-                if (System.currentTimeMillis() - lastUpdate >= updateInterval) {
-                    lastUpdate = System.currentTimeMillis();
-                    if (!gameManager.isPaused()) {
-                        gameManager.nextGeneration();
-                    }
+                elapsedMillis = (System.nanoTime() - lastUpdate) / 1_000_000L;
+                long updateInterval = (long) (1000.0 / gameManager.getGameSpeed());
+                if (elapsedMillis >= updateInterval && !gameManager.isPaused()) {
+                    lastUpdate = System.nanoTime();
+                    gameManager.nextGeneration();
                 }
             }
         };

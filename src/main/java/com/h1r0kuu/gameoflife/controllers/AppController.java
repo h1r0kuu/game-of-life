@@ -1,6 +1,7 @@
 package com.h1r0kuu.gameoflife.controllers;
 
 import com.h1r0kuu.gameoflife.enums.PastingType;
+import com.h1r0kuu.gameoflife.handlers.CanvasWrapperMouseHandlers;
 import com.h1r0kuu.gameoflife.handlers.UiHandler;
 import com.h1r0kuu.gameoflife.renderer.LifeRenderer;
 import com.h1r0kuu.gameoflife.GameOfLife;
@@ -81,6 +82,9 @@ public class AppController extends VBox {
     @FXML private Button rotateSelectionLeft;
     @FXML private Button inverseSelectedCells;
     @FXML private Button cancelSelection;
+    @FXML private Label randomProbabilityLabel;
+    @FXML private Slider randomProbability;
+    @FXML private Button randomize;
     @FXML private Button pauseOnDraw;
     @FXML private Canvas canvas;
     @FXML private Rectangle selectRectangle;
@@ -137,10 +141,6 @@ public class AppController extends VBox {
         gameManager.setGroups(selectButtonGroup, drawButtonGroup);
         gameManager.setPasteModeButtons(pasteAnd, pasteCpy, pasteOr, pasteXor);
 
-        int percentage = (int) ((gameManager.getGameSpeed() * 100) / gameSpeed.getMax());
-        String style = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", percentage, percentage);
-        gameSpeed.setStyle(style);
-
         canvasOuter.setOnScroll(e-> {
             e.consume();
             onScroll(e.getTextDeltaY(), new Point2D(e.getX(), e.getY()));
@@ -148,7 +148,15 @@ public class AppController extends VBox {
 
         updateScale();
         initCanvasHandlers();
+        initScrollPaneHandlers();
         initButtonClicks();
+    }
+
+    public void initScrollPaneHandlers() {
+        CanvasWrapperMouseHandlers canvasWrapperMouseHandlers = new CanvasWrapperMouseHandlers(scrollPane);
+        scrollPane.setOnMouseMoved(canvasWrapperMouseHandlers::onMouseMoved);
+        scrollPane.setOnMousePressed(canvasWrapperMouseHandlers::onMousePressed);
+        scrollPane.setOnMouseDragged(canvasWrapperMouseHandlers::onMouseDragged);
     }
 
     public void initCanvasHandlers() {
@@ -161,7 +169,9 @@ public class AppController extends VBox {
         canvas.requestFocus();
         box.setOnKeyPressed(hotKeysHandler::onKeyPressed);
     }
-
+//    @FXML private Label randomProbabilityLabel;
+//    @FXML private Slider randomProbability;
+//    @FXML private Button randomize;
     public void initButtonClicks() {
         nextGenerationButton.setOnMouseClicked(e -> gameManager.nextGeneration());
         previousGenerationButton.setOnMouseClicked(e -> gameManager.previousGeneration());
@@ -191,7 +201,15 @@ public class AppController extends VBox {
         searchBar.textProperty().addListener((observable, oldValue, newValue) -> uiHandler.handleSearchTextChange(newValue, patternList, patterns));
         patternList.setOnMouseClicked(e -> choosePattern());
 
+        int percentage = (int) ((gameManager.getGameSpeed() * 100) / gameSpeed.getMax());
+        String style = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", percentage, percentage);
+        gameSpeed.setStyle(style);
         gameSpeed.valueProperty().addListener((ov, old_val, new_val) -> uiHandler.handleGameSpeedChange(new_val, gameSpeedLabel, gameSpeed));
+
+        int randomPercentage = (int) ((randomProbability.getValue() * 100) / randomProbability.getMax());
+        String styleProbabily = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", randomPercentage, randomPercentage);
+        randomProbability.setStyle(styleProbabily);
+        randomProbability.valueProperty().addListener((ov, old_val, new_val) -> uiHandler.handleRandomProbabilityChange(new_val, randomProbabilityLabel, randomProbability));
 
         moveSelectionLeft.setOnMouseClicked(e -> iGridService.moveSelectedCells(MoveType.LEFT));
         moveSelectionRight.setOnMouseClicked(e -> iGridService.moveSelectedCells(MoveType.RIGHT));
@@ -202,6 +220,8 @@ public class AppController extends VBox {
         rotateSelectionLeft.setOnMouseClicked(e -> iGridService.rotateSelectedCells(MoveType.LEFT));
 
         pauseOnDraw.setOnMouseClicked(e -> uiHandler.handleOnPauseOnDrawButtonClick(e, pauseOnDraw));
+
+        randomize.setOnMouseClicked(e -> iGridService.randomize(randomProbability.getValue()));
     }
 
     private void savePattern() {
@@ -258,11 +278,8 @@ public class AppController extends VBox {
     }
 
     private void saveTextToFile(String content, File file) {
-        try {
-            PrintWriter writer;
-            writer = new PrintWriter(file);
+        try(PrintWriter writer = new PrintWriter(file)) {
             writer.println(content);
-            writer.close();
         } catch (IOException ex) {
             logger.error(ex);
         }

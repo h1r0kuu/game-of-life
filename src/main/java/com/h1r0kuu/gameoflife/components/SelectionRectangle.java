@@ -3,22 +3,21 @@ package com.h1r0kuu.gameoflife.components;
 import com.h1r0kuu.gameoflife.enums.MoveType;
 import com.h1r0kuu.gameoflife.models.Cell;
 import com.h1r0kuu.gameoflife.utils.Constants;
-import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 
 public class SelectionRectangle {
 
     private final Rectangle rectangle;
     private final Rectangle rectangleForPaste;
-    private final StackPane canvasContainer;
-    private BufferedImage samplePattern;
+    private final StackPane  canvasContainer;
+    private WritableRaster samplePattern;
 
     private int selectStartRow;
     private int selectStartCol;
@@ -59,27 +58,25 @@ public class SelectionRectangle {
 
         int pasteStartRow = (int) Math.floor(y / Constants.CELL_SIZE);
         int pasteStartCol = (int) Math.floor(x / Constants.CELL_SIZE);
-        samplePattern = new BufferedImage(rectWidth, rectHeight, BufferedImage.TYPE_INT_ARGB);
 
+        int[] colors = new int[rectWidth * rectHeight];
         for (int row = 0; row < rectHeight; row++) {
             for (int col = 0; col < rectWidth; col++) {
                 Cell cell = cellsToPaste[row / Constants.CELL_SIZE][col / Constants.CELL_SIZE];
-                int color;
-                if(cell.isAlive()) {
-                    color = 0xFFCC6633;
-                } else {
-                    color = 0xFFFF0000;
-                }
-                samplePattern.setRGB(col, row, color);
+                int color = cell.isAlive() ? 0xFFCC6633 : 0xFFFF0000;
+                colors[row * rectWidth + col] = color;
             }
         }
 
+        WritableImage image = new WritableImage(rectWidth, rectHeight);
+        PixelWriter writer = image.getPixelWriter();
+        writer.setPixels(0, 0, rectWidth, rectHeight, PixelFormat.getIntArgbInstance(), colors, 0, rectWidth);
+
         rectangleForPaste.setTranslateX(pasteStartCol * Constants.CELL_SIZE);
         rectangleForPaste.setTranslateY(pasteStartRow * Constants.CELL_SIZE);
-
         rectangleForPaste.setWidth(rectWidth);
         rectangleForPaste.setHeight(rectHeight);
-        rectangleForPaste.setFill(new ImagePattern(SwingFXUtils.toFXImage(samplePattern, null)));
+        rectangleForPaste.setFill(new ImagePattern(image));
     }
 
     public void selectRange(double startX, double startY, double endX, double endY) {
@@ -123,28 +120,37 @@ public class SelectionRectangle {
     }
 
     public void rotate(MoveType moveType) {
-        int tempStartRow = selectStartRow;
-        int tempStartCol = selectStartCol;
-        int tempEndRow = selectEndRow;
-        int tempEndCol = selectEndCol;
-        int tempColsLength = selectedColsLength;
-        int tempRowsLength = selectedRowsLength;
+        int centerX = (selectStartRow + selectEndRow) / 2;
+        int centerY = (selectStartCol + selectEndCol) / 2;
 
-        switch (moveType) {
-            case LEFT -> {
-                selectStartRow = tempEndRow - tempRowsLength + 1;
-                selectEndCol = tempStartCol + tempColsLength - 1;
-            }
-            case RIGHT -> {
-                selectStartCol = tempEndCol - tempColsLength + 1;
-                selectEndRow = tempEndRow - tempRowsLength + 1;
-            }
-        }
+        int[] topLeft = rotatePoint(selectStartRow, selectStartCol, centerX, centerY, moveType);
+        int[] topRight = rotatePoint(selectEndRow, selectStartCol, centerX, centerY, moveType);
+        int[] bottomLeft = rotatePoint(selectStartRow, selectEndCol, centerX, centerY, moveType);
+        int[] bottomRight = rotatePoint(selectEndRow, selectEndCol, centerX, centerY, moveType);
 
-        selectedColsLength = tempRowsLength;
-        selectedRowsLength = tempColsLength;
+        selectStartRow = Math.min(topLeft[0], Math.min(topRight[0], Math.min(bottomLeft[0], bottomRight[0])));
+        selectStartCol = Math.min(topLeft[1], Math.min(topRight[1], Math.min(bottomLeft[1], bottomRight[1])));
+        selectEndRow = Math.max(topLeft[0], Math.max(topRight[0], Math.max(bottomLeft[0], bottomRight[0])));
+        selectEndCol = Math.max(topLeft[1], Math.max(topRight[1], Math.max(bottomLeft[1], bottomRight[1])));
+
+        selectedColsLength = (selectEndRow - selectStartRow) + 1;
+        selectedRowsLength = (selectEndCol - selectStartCol) + 1;
 
         update();
+    }
+
+    private int[] rotatePoint(int row, int col, int centerX, int centerY, MoveType moveType) {
+        int[] result = new int[2];
+        int dx = col - centerX;
+        int dy = row - centerY;
+        if (moveType == MoveType.LEFT) {
+            result[0] = centerY + dx;
+            result[1] = centerX - dy;
+        } else if (moveType == MoveType.RIGHT) {
+            result[0] = centerY - dx;
+            result[1] = centerX + dy;
+        }
+        return result;
     }
 
     public void update() {

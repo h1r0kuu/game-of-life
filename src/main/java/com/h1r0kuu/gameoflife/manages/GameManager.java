@@ -138,7 +138,7 @@ public class GameManager {
         selectButtonGroup.setVisible(false);
         switch (userActionState) {
             case DRAWING -> {
-                drawButton.setCursor(Cursor.DEFAULT);
+                canvas.setCursor(Cursor.DEFAULT);
                 drawButton.setStyle(Constants.ACTIVE_BUTTON);
                 drawButtonGroup.setVisible(true);
             }

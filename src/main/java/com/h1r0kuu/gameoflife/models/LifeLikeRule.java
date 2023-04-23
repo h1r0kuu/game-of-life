@@ -68,19 +68,10 @@ public class LifeLikeRule implements Rule {
     }
 
     private boolean staysAlive(int n) {
-        if (survivalNeighboursCounts.contains(n)) {
-            return true;
-
-        } else {
-            return false;
-        }
+        return survivalNeighboursCounts.contains(n);
     }
 
     private boolean getsBirth(int n) {
-        if (birthNeighboursCounts.contains(n)) {
-            return true;
-        } else {
-            return false;
-        }
+        return birthNeighboursCounts.contains(n);
     }
 }

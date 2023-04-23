@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import java.util.Objects;
 
 public class Constants {
-    public static final int FPS_SET = 180;
+    public static final int FPS_SET = 60;
     public static final int CELL_SIZE = 10;
     public static final int CELL_SHADE_SPEED = 25;
     public static final int[][] NEIGHBOUR_OFFSETS = {

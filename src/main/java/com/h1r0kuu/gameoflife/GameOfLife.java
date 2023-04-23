@@ -1,13 +1,13 @@
 package com.h1r0kuu.gameoflife;
 
 import com.h1r0kuu.gameoflife.controllers.AppController;
+import com.h1r0kuu.gameoflife.controllers.LoaderController;
 import com.h1r0kuu.gameoflife.models.Pattern;
 import com.h1r0kuu.gameoflife.manages.*;
 import com.h1r0kuu.gameoflife.utils.RLE;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,13 +25,11 @@ public class GameOfLife extends Application {
     private static final Logger logger = LogManager.getLogger(GameOfLife.class);
 
     private void loadPatterns() {
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setProgress(0.0);
-        StackPane root = new StackPane();
-        root.getChildren().add(progressBar);
+        LoaderController loaderController = new LoaderController();
+        ProgressBar progressBar = loaderController.getProgressBar();
 
         Stage progressStage = new Stage();
-        Scene progressScene = new Scene(root, 400, 400);
+        Scene progressScene = new Scene(loaderController);
         progressStage.setScene(progressScene);
         progressStage.show();
 
