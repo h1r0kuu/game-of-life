@@ -90,6 +90,7 @@ public class AppController extends VBox {
     @FXML private Rectangle selectRectangle;
     @FXML private Rectangle pasteRectangle;
     @FXML private TextField searchBar;
+    @FXML private Label clearSearchBar;
     @FXML private ListView<String> patternList;
     @FXML private ComboBox<String> themes;
     @FXML private Slider gameSpeed;
@@ -134,10 +135,9 @@ public class AppController extends VBox {
         grid.init();
         Pattern pattern = GameManager.patternManager.getByName("Copperhead");
         Cell[][] cells = RLE.decode(pattern.getRleString());
-        iGridService.printCellsAsString(cells);
         iGridService.setPattern(cells);
 
-        gameManager.setButtons(playImage, drawButton,selectButton,moveButton);
+        gameManager.setButtons(playImage, drawButton, selectButton, moveButton, showBorderButton);
         gameManager.setGroups(selectButtonGroup, drawButtonGroup);
         gameManager.setPasteModeButtons(pasteAnd, pasteCpy, pasteOr, pasteXor);
 
@@ -186,6 +186,8 @@ public class AppController extends VBox {
         pasteOr.setOnMouseClicked(e -> gameManager.changePasteMode(PastingType.OR));
         pasteXor.setOnMouseClicked(e -> gameManager.changePasteMode(PastingType.XOR));
 
+        showBorderButton.setOnMouseClicked(e -> gameManager.toggleShowBorders());
+
         ObservableList<String> themeNames = FXCollections.observableArrayList(GameManager.themeManager.getThemes().stream().map(t -> t.THEME_NAME).toList());
         themes.setItems(themeNames);
         if(themeNames.size() > 0) themes.setValue(themeNames.get(0));
@@ -199,6 +201,10 @@ public class AppController extends VBox {
         ObservableList<String> patterns = FXCollections.observableArrayList(GameManager.patternManager.getPatterns().stream().map(Pattern::getName).toList());
         patternList.getItems().addAll(patterns);
         searchBar.textProperty().addListener((observable, oldValue, newValue) -> uiHandler.handleSearchTextChange(newValue, patternList, patterns));
+        clearSearchBar.setOnMouseClicked(e -> {
+            searchBar.setText("");
+            uiHandler.handleSearchTextChange("", patternList, patterns);
+        });
         patternList.setOnMouseClicked(e -> choosePattern());
 
         int percentage = (int) ((gameManager.getGameSpeed() * 100) / gameSpeed.getMax());

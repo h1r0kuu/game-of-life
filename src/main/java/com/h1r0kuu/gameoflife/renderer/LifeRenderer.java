@@ -29,11 +29,14 @@ public class LifeRenderer {
                 Cell cell = grid.getCell(i, j);
                 Color borderColor = currentTheme.GRID;
                 Color cellColor = cell.getColor(currentTheme);
-                drawCell(j, i, borderColor, cellColor);
+                if(cellColor != cell.getPreviousColor()) {
+                    cell.setPreviousColor(cellColor);
+                    drawCell(j, i, borderColor, cellColor);
+                }
             }
         }
 
-        if(false) {
+        if(grid.isShowBorders()) {
             drawBorders();
         }
     }
@@ -64,7 +67,7 @@ public class LifeRenderer {
 
         double borderSize = 1.0;
 
-        if (false) {
+        if (grid.isShowBorders()) {
             gc.setFill(borderColor);
             gc.fillRect(x, y, size, size);
             gc.setFill(cellColor);

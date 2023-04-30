@@ -23,6 +23,7 @@ public class LoaderController extends StackPane {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
     }
 
     public Label getProgressText() {

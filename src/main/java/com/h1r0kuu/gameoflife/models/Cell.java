@@ -15,6 +15,8 @@ public class Cell {
     private int lifetime = 0;
     private int deadTime = 0;
 
+    private Color previousColor;
+
     public Cell() {}
 
     public Cell(boolean isAlive) {
@@ -140,5 +142,13 @@ public class Cell {
         setDeadTime(0);
         setWasAlive(false);
         setAlive(false);
+    }
+
+    public Color getPreviousColor() {
+        return previousColor;
+    }
+
+    public void setPreviousColor(Color previousColor) {
+        this.previousColor = previousColor;
     }
 }

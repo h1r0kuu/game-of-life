@@ -32,6 +32,7 @@ public class GameManager {
     private Button selectionButton;
     private Pane selectButtonGroup;
     private Button moveButton;
+    private Button showBorderButton;
 
     private Button pasteAnd;
     private Button pasteCpy;
@@ -177,11 +178,17 @@ public class GameManager {
         }
     }
 
-    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton) {
+    public void toggleShowBorders() {
+        grid.setShowBorders(!grid.isShowBorders());
+        showBorderButton.setStyle(grid.isShowBorders() ? Constants.ACTIVE_BUTTON : Constants.IDLE_BUTTON);
+    }
+
+    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton, Button showBorderButton) {
         this.playImage = playImage;
         this.drawButton = drawButton;
         this.selectionButton = selectionButton;
         this.moveButton = moveButton;
+        this.showBorderButton = showBorderButton;
     }
 
     public void setGroups(Pane selectButtonGroup, Pane drawButtonGroup) {

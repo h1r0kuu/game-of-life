@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class Constants {
     public static final int FPS_SET = 60;
-    public static final int CELL_SIZE = 10;
+    public static final int CELL_SIZE = 16;
     public static final int CELL_SHADE_SPEED = 25;
     public static final int[][] NEIGHBOUR_OFFSETS = {
             {-1, -1}, {-1, 0}, {-1, 1},

@@ -104,21 +104,21 @@ public class GridServiceImpl implements IGridService {
         for (int i = 0; i < rows * cols; i++) {
             Cell cell = grid.getCell(i);
             boolean currentCellIsAlive = cell.isAlive();
-            boolean wasAlive = cell.wasAlive();
             Cell nextGenCell = cell;
 
             boolean willBeAlive = grid.getRule().apply(grid, this, i);
 
             if(currentCellIsAlive && willBeAlive) {
+                nextGenCell.setAlive(true);
                 nextGenCell.setWasAlive(false);
             } else if(!currentCellIsAlive && willBeAlive) {
                 nextGenCell = new Cell(true);
                 nextGenCell.setWasAlive(false);
-            } else {
+            } else if(currentCellIsAlive) {
                 nextGenCell = new Cell(false);
-                if (currentCellIsAlive) nextGenCell.setWasAlive(true);
-                if (wasAlive) nextGenCell.setWasAlive(true);
+                nextGenCell.setWasAlive(true);
             }
+
             nextGenCell.setLifeTime(cell.getLifetime());
             nextGenCell.setDeadTime(cell.getDeadTime());
             nextGenCell.setEvent(cell.getEvent());

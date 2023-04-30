@@ -229,6 +229,7 @@
                         </Pane>
                      </children>
                   </Group>
+                  <Label fx:id="clearSearchBar" layoutX="187.0" layoutY="246.0" text="x" textFill="#d1cdcd" />
                     </children>
                     <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -447,7 +448,7 @@
                         <Group fx:id="zoomNode">
                            <children>
                                  <StackPane fx:id="canvasContainer">
-                                 <Canvas fx:id="canvas" height="2046.0" width="2046.0" />
+                                 <Canvas fx:id="canvas" height="4096.0" width="4096.0" />
                                  <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
                                  <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
                                  </StackPane>
