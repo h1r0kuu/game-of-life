@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" type="AnchorPane" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <LineChart fx:id="lineChart" animated="false" createSymbols="false" prefHeight="600.0" prefWidth="800.0">
+            <xAxis>
+                <NumberAxis fx:id="generation" label="Generation" minorTickVisible="false" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis fx:id="population" label="Population" minorTickVisible="false" />
+            </yAxis>
+        </LineChart>
+    </children>
+</fx:root>
