@@ -52,7 +52,7 @@
                   <ListView fx:id="patternList" layoutX="15.0" layoutY="276.0" prefHeight="377.0" prefWidth="188.0" styleClass="pattern_list" />
                   <Group>
                      <children>
-                        <Pane fx:id="selectButtonGroup" prefHeight="200.0" prefWidth="200.0">
+                        <Pane fx:id="selectButtonGroup" prefHeight="200.0" prefWidth="200.0" visible="false">
                            <children>
                                     <Button fx:id="moveSelectionLeft" layoutX="9.0" layoutY="51.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                                  <graphic>
@@ -211,7 +211,7 @@
                               </Button>
                            </children>
                         </Pane>
-                        <Pane fx:id="drawButtonGroup" prefHeight="200.0" prefWidth="200.0" visible="false">
+                        <Pane fx:id="drawButtonGroup" prefHeight="200.0" prefWidth="200.0">
                            <children>
                               <Button fx:id="pauseOnDraw" layoutX="8.0" layoutY="7.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: rgb(255,0,0,0.76);" styleClass="button">
                                  <graphic>
@@ -275,7 +275,7 @@
                      </tooltip></Button>
                         <Slider fx:id="gameSpeed" layoutX="264.0" layoutY="17.0" majorTickUnit="8.0" max="64.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="10.0" />
                         <Label fx:id="gameSpeedLabel" layoutX="274.0" layoutY="25.0" mouseTransparent="true" prefHeight="17.0" prefWidth="46.0" text="10 gps" textFill="WHITE" />
-                  <Label layoutX="14.0" layoutY="21.0" text="T 0" textFill="WHITE">
+                  <Label fx:id="generationLabel" layoutX="14.0" layoutY="21.0" text="T 0" textFill="WHITE">
                      <font>
                         <Font size="29.0" />
                      </font></Label>
@@ -355,7 +355,7 @@
                      <tooltip>
                         <Tooltip text="Toggle gridlines" />
                      </tooltip></Button>
-                        <Button fx:id="autoFitPattern" layoutX="14.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                        <Button fx:id="autoFitPatternButton" layoutX="14.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                      <graphic>
                         <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -366,7 +366,7 @@
                      <tooltip>
                         <Tooltip text="Auto fit" />
                      </tooltip></Button>
-                        <Button fx:id="fitPattern" layoutX="61.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                        <Button fx:id="fitPatternButton" layoutX="61.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                      <graphic>
                         <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -441,16 +441,16 @@
                 </Pane>
             </left>
          <center>
-             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" hmin="1.0" style="-fx-background-color: rgb(40,40,40);" vbarPolicy="NEVER" vmin="1.0" BorderPane.alignment="TOP_LEFT">
+             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" hmin="1.0" pannable="true" style="-fx-background-color: rgb(40,40,40);" vbarPolicy="NEVER" vmin="1.0" BorderPane.alignment="TOP_LEFT">
                  <content>
                   <VBox fx:id="canvasOuter" alignment="CENTER" style="-fx-background-color: rgb(40,40,40);">
                      <children>
                         <Group fx:id="zoomNode">
                            <children>
-                                 <StackPane fx:id="canvasContainer">
-                                 <Canvas fx:id="canvas" height="4096.0" width="4096.0" />
-                                 <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
-                                 <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                 <StackPane fx:id="canvasContainer" prefHeight="4096.0" prefWidth="4096.0">
+                                     <Canvas fx:id="canvas" height="4096.0" width="4096.0" />
+                                     <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                     <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
                                  </StackPane>
                            </children>
                         </Group>

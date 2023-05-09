@@ -1,9 +1,11 @@
 package com.h1r0kuu.gameoflife;
 
 import com.h1r0kuu.gameoflife.controllers.AppController;
+import com.h1r0kuu.gameoflife.controllers.PopulationGraphController;
 import com.h1r0kuu.gameoflife.manages.GameLoopManager;
 import com.h1r0kuu.gameoflife.manages.GameManager;
 import com.h1r0kuu.gameoflife.models.Pattern;
+import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.RLE;
 import javafx.application.Platform;
 import javafx.application.Preloader;
@@ -14,17 +16,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
+import java.io.*;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 public class GamePreloader extends Preloader {
     private ProgressBar progressBar;
@@ -62,6 +59,13 @@ public class GamePreloader extends Preloader {
                     primaryStage.setScene(scene);
                     primaryStage.show();
 
+                    PopulationGraphController populationGraphController = new PopulationGraphController();
+                    Stage graphStage = new Stage();
+                    graphStage.setScene(new Scene(populationGraphController));
+                    graphStage.show();
+
+                    appController.getGameManager().setGraphData(populationGraphController.getData());
+
                     GameLoopManager gameLoopManager = new GameLoopManager(appController.getGameManager(), appController.getGridService(), appController.getLifeRenderer());
                     gameLoopManager.startGameLoop();
                 } catch (Exception e) {
@@ -81,47 +85,43 @@ public class GamePreloader extends Preloader {
     }
 
     private void loadPatterns() {
-        ClassLoader classLoader = Main.class.getClassLoader();
+        ClassLoader classLoader = getClass().getClassLoader();
 
-        long totalFiles = 0;
-        try (Stream<Path> walk = Files.walk(Paths.get(Objects.requireNonNull(classLoader.getResource("all")).toURI()))) {
-            totalFiles = walk.filter(p -> !Files.isDirectory(p)).count();
-        } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        URL url = classLoader.getResource(Constants.PATTERNS_FOLDER_NAME);
+        String path = url.getPath();
+        File folder = new File(path);
+        File[] listFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".rle"));
+        long finalTotalFiles = listFiles.length;
 
         AtomicInteger fileCount = new AtomicInteger();
-        try (Stream<Path> walk2 = Files.walk(Paths.get(Objects.requireNonNull(classLoader.getResource("all")).toURI()))) {
-            long finalTotalFiles = totalFiles;
-            walk2.filter(p -> !Files.isDirectory(p))
-                    .map(p -> p.toString().toLowerCase())
-                    .filter(f -> f.endsWith("rle"))
-                    .forEach(f -> {
-                        try {
-                            File file = new File(f);
-                            String content = RLE.read(f);
-                            String name = RLE.getName(content);
-                            if (name == null) {
-                                name = file.getName();
-                            }
-                            Pattern pattern = new Pattern(content);
-                            if (pattern.getName() == null) {
-                                pattern.setName(name);
-                            }
+        Arrays.stream(listFiles).forEach(file -> {
+            String content = null;
+            try {
+                content = RLE.read(file.getAbsolutePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            String name = null;
+            try {
+                name = RLE.getName(content);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (name == null) {
+                name = file.getName();
+            }
+            Pattern pattern = new Pattern(content);
+            if (pattern.getName() == null) {
+                pattern.setName(name);
+            }
 
-                            GameManager.patternManager.addPattern(pattern);
-                            fileCount.incrementAndGet();
-                            double progress = fileCount.get() / (double) finalTotalFiles;
-                            Platform.runLater(() -> {
-                                progressText.setText("Patterns loaded %d/%d".formatted(fileCount.get(), finalTotalFiles));
-                                progressBar.setProgress(progress);
-                            });
-                        } catch (ArrayIndexOutOfBoundsException | IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+            GameManager.patternManager.addPattern(pattern);
+            fileCount.incrementAndGet();
+            double progress = fileCount.get() / (double) finalTotalFiles;
+            Platform.runLater(() -> {
+                progressText.setText("Patterns loaded %d/%d".formatted(fileCount.get(), finalTotalFiles));
+                progressBar.setProgress(progress);
+            });
+        });
     }
 }

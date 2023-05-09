@@ -22,4 +22,6 @@ public class Constants {
     public static final double ZOOM_INTENSITY = 0.08;
     public static final double MIN_SCALE = 0;
     public static final double MAX_SCALE = 10;
+
+    public static final String PATTERNS_FOLDER_NAME = "patterns";
 }

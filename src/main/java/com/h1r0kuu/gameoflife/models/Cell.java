@@ -11,6 +11,7 @@ import java.util.Objects;
 public class Cell {
     private boolean isAlive = false;
     private boolean wasAlive = false;
+    private boolean nextState;
     private CellEvent event;
     private int lifetime = 0;
     private int deadTime = 0;
@@ -36,19 +37,30 @@ public class Cell {
     }
 
     public Color getColor(Theme currentTheme) {
+        Color background = currentTheme.BACKGROUND;
+        Color cellDeadColor = currentTheme.CELL_DEAD;
+        Color cellAliveColor = currentTheme.CELL_ALIVE;
+        CellShade cellDeadShade = currentTheme.cellDeadShade;
+        CellShade cellAliveShade = currentTheme.cellAliveShade;
+        CellShadeDirection cellDeadShadeDir = currentTheme.cellDeadShadeDir;
+        CellShadeDirection cellAliveShadeDir = currentTheme.cellAliveShadeDir;
+
         if (lifetime == 0 && !wasAlive && !isAlive) {
-            return currentTheme.BACKGROUND;
-        } else if ((wasAlive && !isAlive) || (Objects.equals(event, CellEvent.KILL))) {
-            return getColorForState(currentTheme.CELL_DEAD, currentTheme.CELL_DEADRAMP,
-                    currentTheme.cellDeadShade, currentTheme.cellDeadShadeDir, deadTime);
-        } else if ((!wasAlive & isAlive) || Objects.equals(event, CellEvent.REVIEW)) {
-            return getColorForState(currentTheme.CELL_ALIVE, currentTheme.CELL_ALIVERAMP,
-                    currentTheme.cellAliveShade, currentTheme.cellAliveShadeDir, lifetime);
-        } else if(lifetime == 0) {
-            return getColorForState(currentTheme.CELL_ALIVE, currentTheme.CELL_ALIVERAMP,
-                    currentTheme.cellAliveShade, currentTheme.cellAliveShadeDir, lifetime);
+            return background;
         }
-        return currentTheme.BACKGROUND;
+
+        boolean isKillEvent = Objects.equals(event, CellEvent.KILL);
+        boolean isReviewEvent = Objects.equals(event, CellEvent.REVIEW);
+
+        if ((wasAlive && !isAlive) || isKillEvent) {
+            return getColorForState(cellDeadColor, currentTheme.CELL_DEADRAMP,
+                    cellDeadShade, cellDeadShadeDir, deadTime);
+        } else if ((!wasAlive && isAlive) || isReviewEvent || lifetime == 0) {
+            return getColorForState(cellAliveColor, currentTheme.CELL_ALIVERAMP,
+                    cellAliveShade, cellAliveShadeDir, lifetime);
+        }
+
+        return background;
     }
 
     private Color getColorForState(Color baseColor, Color rampColor, CellShade shade,
@@ -98,14 +110,6 @@ public class Cell {
         }
     }
 
-    public int getLifetime() {
-        return lifetime;
-    }
-
-    public int getDeadTime() {
-        return deadTime;
-    }
-
     public void setDeadTime(int deadTime) {
         this.deadTime = deadTime;
     }
@@ -117,8 +121,6 @@ public class Cell {
     public boolean isAlive() {
         return isAlive;
     }
-
-    public CellEvent getEvent() {return event;}
 
     public void setEvent(CellEvent event) {
         this.event = event;
@@ -150,5 +152,17 @@ public class Cell {
 
     public void setPreviousColor(Color previousColor) {
         this.previousColor = previousColor;
+    }
+
+    public boolean nextState() {
+        return nextState;
+    }
+
+    public void setNextState(boolean nextState) {
+        this.nextState = nextState;
+    }
+
+    public void applyNextState() {
+        isAlive = nextState;
     }
 }

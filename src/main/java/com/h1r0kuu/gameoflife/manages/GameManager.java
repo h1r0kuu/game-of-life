@@ -7,9 +7,14 @@ import com.h1r0kuu.gameoflife.models.Grid;
 import com.h1r0kuu.gameoflife.models.Theme;
 import com.h1r0kuu.gameoflife.service.grid.IGridService;
 import com.h1r0kuu.gameoflife.utils.Constants;
+import com.h1r0kuu.gameoflife.utils.LabelUtility;
+import javafx.collections.ObservableList;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.apache.logging.log4j.LogManager;
@@ -39,6 +44,12 @@ public class GameManager {
     private Button pasteOr;
     private Button pasteXor;
 
+    private ComboBox<String> themes;
+
+    private Label generationLabel;
+
+    private ObservableList<XYChart.Data<Number, Number>> graphData;
+
     private final Stack<Cell[]> gameBoardHistory = new Stack<>();
     private final Grid grid;
     private final IGridService iGridService;
@@ -61,17 +72,23 @@ public class GameManager {
     public void nextGeneration() {
         gameBoardHistory.push(grid.getCells());
         iGridService.nextGeneration();
+        increaseGeneration();
+        addData(generation, grid.getPopulation());
+        generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
     }
 
     public void previousGeneration() {
         if (!gameBoardHistory.isEmpty()) {
             grid.setCells(gameBoardHistory.pop());
+            decreaseGeneration();
+            generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
         }
     }
 
     public void clearBoard() {
         iGridService.clearGrid();
         setGeneration(0);
+        generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
     }
 
 
@@ -178,6 +195,11 @@ public class GameManager {
         }
     }
 
+    public void changeTheme(String newTheme) {
+        themeManager.changeTheme(newTheme);
+        themes.setValue(newTheme);
+    }
+
     public void toggleShowBorders() {
         grid.setShowBorders(!grid.isShowBorders());
         showBorderButton.setStyle(grid.isShowBorders() ? Constants.ACTIVE_BUTTON : Constants.IDLE_BUTTON);
@@ -205,5 +227,21 @@ public class GameManager {
 
     public Grid getGrid() {
         return grid;
+    }
+
+    public void setThemesCombobox(ComboBox<String> themes) {
+        this.themes = themes;
+    }
+
+    public void setGenerationLabel(Label generationLabel) {
+        this.generationLabel = generationLabel;
+    }
+
+    public void setGraphData(ObservableList<XYChart.Data<Number, Number>> graphData) {
+        this.graphData = graphData;
+    }
+
+    public void addData(int generation, int population) {
+        graphData.add(new XYChart.Data<>(generation, population));
     }
 }

@@ -1,9 +1,7 @@
 package com.h1r0kuu.gameoflife;
 
-import com.h1r0kuu.gameoflife.controllers.AppController;
-import com.h1r0kuu.gameoflife.manages.*;
 import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,8 +17,11 @@ public class GameOfLife extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         GamePreloader preloader = new GamePreloader();
+
         preloader.start(primaryStage);
-
-
+        primaryStage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
     }
 }

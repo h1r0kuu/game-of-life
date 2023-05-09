@@ -11,6 +11,10 @@ import com.h1r0kuu.gameoflife.models.Pattern;
 import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.RLE;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+
 public class GridServiceImpl implements IGridService {
 
     private final Grid grid;
@@ -31,6 +35,7 @@ public class GridServiceImpl implements IGridService {
                 int j = colStart + patternJ;
                 if(patternCells[patternI][patternJ].isAlive()) {
                     grid.getCell(i, j).setAlive(true);
+                    grid.increasePopulation();
                 }
             }
         }
@@ -52,18 +57,26 @@ public class GridServiceImpl implements IGridService {
 
     @Override
     public void clearGrid() {
+        grid.setPopulation(0);
         for (int i = 0; i < grid.getCells().length; i++) {
-            grid.setCell(i, new Cell(false));
+            grid.getCell(i).setAlive(false);
         }
     }
 
     @Override
     public void randomize(double probability) {
         clearSelectedCells();
-        for (int row = grid.getRectangle().getSelectStartRow(); row <= grid.getRectangle().getSelectEndRow(); row++) {
-            for (int col = grid.getRectangle().getSelectStartCol(); col <= grid.getRectangle().getSelectEndCol(); col++) {
+
+        int startRow = grid.getRectangle().getSelectStartRow();
+        int endRow = grid.getRectangle().getSelectEndRow();
+        int startCol = grid.getRectangle().getSelectStartCol();
+        int endCol = grid.getRectangle().getSelectEndCol();
+
+        for (int row = startRow; row <= endRow; row++) {
+            for (int col = startCol; col <= endCol; col++) {
                 if (Math.random() <= probability / 100) {
                     grid.getCell(row, col).setAlive(true);
+                    grid.increasePopulation();
                 }
             }
         }
@@ -89,45 +102,57 @@ public class GridServiceImpl implements IGridService {
 
     @Override
     public int getAliveNeighbours(Grid grid, int index) {
-        int cols = grid.getCols();
-
         int row = index / cols;
         int col = index % cols;
-
         return getAliveNeighbours(grid, row, col);
     }
 
     @Override
     public void nextGeneration() {
-        Cell[] nextGeneration = new Cell[rows * cols];
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int i = 0; i < rows * cols; i++) {
+            final int index = i;
+            Future<?> future = executor.submit(() -> {
+                Cell cell = grid.getCell(index);
+                boolean isCurrentCellAlive  = cell.isAlive();
+                boolean willBeAlive = grid.getRule().apply(grid, this, index);
+                cell.setNextState(willBeAlive);
+                if(isCurrentCellAlive && !willBeAlive) {
+                    grid.decreasePopulation();
+                } else if(!isCurrentCellAlive && willBeAlive) {
+                    grid.increasePopulation();
+                }
+
+                if (isCurrentCellAlive && willBeAlive || !isCurrentCellAlive  && willBeAlive) {
+                    cell.setWasAlive(false);
+                } else if (isCurrentCellAlive ) {
+                    cell.setWasAlive(true);
+                }
+
+                cell.update();
+            });
+
+            futures.add(future);
+        }
+
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+
+            }
+        }
+
+        executor.shutdown();
 
         for (int i = 0; i < rows * cols; i++) {
             Cell cell = grid.getCell(i);
-            boolean currentCellIsAlive = cell.isAlive();
-            Cell nextGenCell = cell;
-
-            boolean willBeAlive = grid.getRule().apply(grid, this, i);
-
-            if(currentCellIsAlive && willBeAlive) {
-                nextGenCell.setAlive(true);
-                nextGenCell.setWasAlive(false);
-            } else if(!currentCellIsAlive && willBeAlive) {
-                nextGenCell = new Cell(true);
-                nextGenCell.setWasAlive(false);
-            } else if(currentCellIsAlive) {
-                nextGenCell = new Cell(false);
-                nextGenCell.setWasAlive(true);
-            }
-
-            nextGenCell.setLifeTime(cell.getLifetime());
-            nextGenCell.setDeadTime(cell.getDeadTime());
-            nextGenCell.setEvent(cell.getEvent());
-            nextGenCell.update();
-
-            nextGeneration[i] = nextGenCell;
+            cell.applyNextState();
         }
-
-        grid.setCells(nextGeneration);
     }
 
     @Override
@@ -137,6 +162,7 @@ public class GridServiceImpl implements IGridService {
             cell.reset();
             cell.setAlive(true);
             cell.setEvent(CellEvent.REVIEW);
+            grid.increasePopulation();
         }
     }
 
@@ -147,6 +173,7 @@ public class GridServiceImpl implements IGridService {
             cell.reset();
             cell.setAlive(false);
             cell.setEvent(CellEvent.KILL);
+            grid.decreasePopulation();
         }
     }
 
@@ -159,13 +186,14 @@ public class GridServiceImpl implements IGridService {
         int selectedRowsLength = grid.getRectangle().getSelectedRowsLength();
         int selectedColsLength = grid.getRectangle().getSelectedColsLength();
 
+        if(selectedRowsLength == 0 && selectedColsLength == 0)
+            return new Cell[0][0];
+
         Cell[][] selectedCells = new Cell[selectedColsLength][selectedRowsLength];
 
-        int i = 0;
-        for (int row = startRow; row <= endRow; row++, i++) {
-            int j = 0;
-            for (int col = startCol; col <= endCol; col++, j++) {
-                selectedCells[i][j] = grid.getCell(row, col);
+        for (int i = startRow; i <= endRow; i++) {
+            for (int j = startCol; j <= endCol; j++) {
+                selectedCells[i - startRow][j - startCol] = grid.getCell(i, j);
             }
         }
 
@@ -174,11 +202,14 @@ public class GridServiceImpl implements IGridService {
 
     @Override
     public void pasteCells(int startX, int startY) {
+        Cell[][] cellsToPaste = grid.getCellsToPaste();
+        if(cellsToPaste.length == 0)
+            return;
         int cellSize = Constants.CELL_SIZE;
         int startRow = startY / cellSize;
         int startCol = startX / cellSize;
-        int endRow = startRow + grid.getCellsToPaste().length;
-        int endCol = startCol + grid.getCellsToPaste()[0].length;
+        int endRow = startRow + cellsToPaste.length;
+        int endCol = startCol + cellsToPaste[0].length;
 
         for (int i = 0; i < grid.getCellsToPaste().length; i++) {
             for (int j = 0; j < grid.getCellsToPaste()[i].length; j++) {
@@ -187,18 +218,10 @@ public class GridServiceImpl implements IGridService {
                 if (row < endRow && col < endCol) {
                     Cell cell = grid.getCell(row, col);
                     switch (GameManager.pastingType) {
-                        case AND -> {
-                            cell.setAlive(grid.getCellToPaste(i, j).isAlive() && cell.isAlive());
-                        }
-                        case CPY -> {
-                            cell.setAlive(grid.getCellToPaste(i, j).isAlive());
-                        }
-                        case OR -> {
-                            cell.setAlive(grid.getCellToPaste(i, j).isAlive() || cell.isAlive());
-                        }
-                        case XOR -> {
-                            cell.setAlive(grid.getCellToPaste(i, j).isAlive() ^ cell.isAlive());
-                        }
+                        case AND -> cell.setAlive(grid.getCellToPaste(i, j).isAlive() && cell.isAlive());
+                        case CPY -> cell.setAlive(grid.getCellToPaste(i, j).isAlive());
+                        case OR -> cell.setAlive(grid.getCellToPaste(i, j).isAlive() || cell.isAlive());
+                        case XOR -> cell.setAlive(grid.getCellToPaste(i, j).isAlive() ^ cell.isAlive());
                     }
                 }
             }
@@ -210,6 +233,7 @@ public class GridServiceImpl implements IGridService {
         for (int row = grid.getRectangle().getSelectStartRow(); row <= grid.getRectangle().getSelectEndRow(); row++) {
             for (int col = grid.getRectangle().getSelectStartCol(); col <= grid.getRectangle().getSelectEndCol(); col++) {
                 grid.getCell(row, col).setAlive(false);
+                grid.decreasePopulation();
             }
         }
     }
@@ -264,6 +288,13 @@ public class GridServiceImpl implements IGridService {
                 cell.setAlive(!cell.isAlive());
             }
         }
+    }
+
+    @Override
+    public void cancelSelection() {
+        SelectionRectangle rectangle = grid.getRectangle();
+        grid.setCellsToPaste(new Cell[0][0]);
+        rectangle.clear();
     }
 
     @Override

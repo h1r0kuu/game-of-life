@@ -52,7 +52,9 @@ public class CanvasMouseHandlers {
 
         if (GameManager.userActionState.equals(UserActionState.PASTING)) {
             Cell[][] cellsToPaste = grid.getCellsToPaste();
-            grid.getRectangle().drawPasteRectangle(cellsToPaste, (int)mouseX, (int)mouseY);
+            if((mouseX + (cellsToPaste[0].length * Constants.CELL_SIZE) <= rows * Constants.CELL_SIZE) &&
+               (mouseY + (cellsToPaste.length * Constants.CELL_SIZE) <= cols * Constants.CELL_SIZE))
+                grid.getRectangle().drawPasteRectangle(cellsToPaste, (int)mouseX, (int)mouseY);
         } else if (row != prevRow || col != prevCol) {
             prevRow = row;
             prevCol = col;
@@ -65,6 +67,9 @@ public class CanvasMouseHandlers {
         int x = (int)e.getX();
         int y = (int)e.getY();
 
+        if (x < 0 || y < 0 || x >= rows * Constants.CELL_SIZE || y >= cols * Constants.CELL_SIZE) {
+            return;
+        }
         switch (GameManager.userActionState) {
             case DRAWING -> {
                 if (gameManager.isPauseWhenDraw()) {
@@ -79,6 +84,7 @@ public class CanvasMouseHandlers {
                 }
             }
             case SELECTING -> {
+                grid.getRectangle().clear();
                 selectX = x;
                 selectY = y;
             }
@@ -92,14 +98,17 @@ public class CanvasMouseHandlers {
     }
 
     public void onMouseDragged(MouseEvent e) {
-        if (mouseX < 0 || mouseY < 0 ||
-            mouseX >= rows * Constants.CELL_SIZE || mouseY >= cols * Constants.CELL_SIZE) {
+        if (mouseX < 0 || mouseY < 0 || mouseY >= cols * Constants.CELL_SIZE || mouseX >= rows * Constants.CELL_SIZE) {
             return;
         }
+        mouseX = e.getX();
+        mouseY = e.getY();
+
         int cellStartRow = (int) Math.floor(startY / Constants.CELL_SIZE);
         int cellStartCol = (int) Math.floor(startX / Constants.CELL_SIZE);
-        int cellEndRow = (int) Math.floor(e.getY() / Constants.CELL_SIZE);
-        int cellEndCol = (int) Math.floor(e.getX() / Constants.CELL_SIZE);
+        int cellEndRow = (int) Math.floor(mouseY / Constants.CELL_SIZE);
+        int cellEndCol = (int) Math.floor(mouseX / Constants.CELL_SIZE);
+
         switch (GameManager.userActionState) {
             case DRAWING -> {
                     int dx = Math.abs(cellEndRow - cellStartRow);
@@ -130,7 +139,8 @@ public class CanvasMouseHandlers {
 
             }
             case SELECTING -> {
-                grid.getRectangle().selectRange(selectX, selectY, e.getX(), e.getY());
+                grid.getRectangle().selectRange(selectX, selectY, mouseX, mouseY);
+
             }
         }
 

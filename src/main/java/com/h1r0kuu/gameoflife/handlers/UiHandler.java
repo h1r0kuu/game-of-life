@@ -22,7 +22,8 @@ public class UiHandler {
 
     public void handleThemeChange(Number newValue, ComboBox<String> themes) {
         String newTheme = themes.getItems().get((Integer) newValue);
-        GameManager.themeManager.changeTheme(newTheme);
+//        GameManager.themeManager.changeTheme(newTheme);
+        gameManager.changeTheme(newTheme);
     }
 
     public void handleSearchTextChange(String newValue, ListView<String> patternList, ObservableList<String> patterns) {
@@ -41,7 +42,7 @@ public class UiHandler {
 
     public void handleRandomProbabilityChange(Number new_val, Label randomProbablityLabel, Slider randomProbability) {
         int newValue = new_val.intValue();
-        randomProbablityLabel.setText(LabelUtility.getText(LabelUtility.GAME_SPEED, newValue));
+        randomProbablityLabel.setText(LabelUtility.getText(LabelUtility.RANDOM_PERCENTAGE, newValue));
         int percentage = (int) ((newValue * 100) / randomProbability.getMax());
         String style = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", percentage, percentage);
         randomProbability.setStyle(style);

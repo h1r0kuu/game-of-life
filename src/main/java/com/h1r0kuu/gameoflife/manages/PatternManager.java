@@ -30,6 +30,7 @@ public class PatternManager {
         if(pattern.isPresent()) {
             return pattern.get();
         }
-        throw new RuntimeException("Pattern not found");
+        logger.info("Pattern not found");
+        return null;
     }
 }

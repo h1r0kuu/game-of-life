@@ -6,18 +6,13 @@ import com.h1r0kuu.gameoflife.utils.Constants;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
-
-import java.awt.image.WritableRaster;
 
 public class SelectionRectangle {
 
     private final Rectangle rectangle;
     private final Rectangle rectangleForPaste;
-    private final StackPane  canvasContainer;
-    private WritableRaster samplePattern;
 
     private int selectStartRow;
     private int selectStartCol;
@@ -27,10 +22,9 @@ public class SelectionRectangle {
     private int selectedRowsLength;
 
 
-    public SelectionRectangle(Rectangle rectangle, Rectangle rectangleForPaste, StackPane canvasContainer) {
+    public SelectionRectangle(Rectangle rectangle, Rectangle rectangleForPaste) {
         this.rectangle = rectangle;
         this.rectangleForPaste = rectangleForPaste;
-        this.canvasContainer = canvasContainer;
     }
 
     public void setX(int row) {
@@ -158,6 +152,17 @@ public class SelectionRectangle {
         setY(selectStartCol);
         setWidth(selectedRowsLength);
         setHeight(selectedColsLength);
+    }
+
+    public void clear() {
+        selectStartRow = 0;
+        selectEndRow = 0;
+        selectStartCol = 0;
+        selectEndCol = 0;
+        selectedColsLength = 0;
+        selectedRowsLength = 0;
+        setWidth(0);
+        setHeight(0);
     }
 
     public int getSelectStartRow() {

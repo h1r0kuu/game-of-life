@@ -22,6 +22,7 @@ public interface IGridService {
     void moveSelectedCells(MoveType moveType);
     void rotateSelectedCells(MoveType moveType);
     void inverseSelectedCells();
+    void cancelSelection();
     Cell[][] getContent(Grid grid);
     void printCellsAsString(Cell[][] cells);
 }

@@ -50,14 +50,15 @@ public class AppController extends VBox {
     private static final Logger logger = LogManager.getLogger(GameOfLife.class);
 
     private double scaleValue = 0.7;
+    private final double zoomIntensity = 0.1;
 
     // define UI elements
     @FXML private Button newPattern;
     @FXML private Button openPattern;
     @FXML private Button savePattern;
     @FXML private Button takePatternPicture;
-    @FXML private Button autoFitPattern;
-    @FXML private Button fitPattern;
+    @FXML private Button autoFitPatternButton;
+    @FXML private Button fitPatternButton;
     @FXML private Button drawButton;
     @FXML private Pane drawButtonGroup;
     @FXML private Button selectButton;
@@ -99,6 +100,7 @@ public class AppController extends VBox {
     @FXML private StackPane canvasContainer;
     @FXML private Group zoomNode;
     @FXML private Label cellInfo;
+    @FXML private Label generationLabel;
     @FXML private VBox box;
     @FXML private VBox canvasOuter;
 
@@ -125,7 +127,7 @@ public class AppController extends VBox {
         int rows = (int) Math.floor(canvas.getHeight() / Constants.CELL_SIZE);
         int cols = (int) Math.floor(canvas.getWidth() / Constants.CELL_SIZE);
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        SelectionRectangle rectangleForSelect = new SelectionRectangle(selectRectangle, pasteRectangle, canvasContainer);
+        SelectionRectangle rectangleForSelect = new SelectionRectangle(selectRectangle, pasteRectangle);
         this.grid = new Grid(rows, cols, rectangleForSelect);
         this.lifeRenderer = new LifeRenderer(grid, gc);
         this.iGridService = new GridServiceImpl(grid);
@@ -134,12 +136,15 @@ public class AppController extends VBox {
 
         grid.init();
         Pattern pattern = GameManager.patternManager.getByName("Copperhead");
-        Cell[][] cells = RLE.decode(pattern.getRleString());
-        iGridService.setPattern(cells);
-
+        if(pattern != null) {
+            Cell[][] cells = RLE.decode(pattern.getRleString());
+            iGridService.setPattern(cells);
+        }
         gameManager.setButtons(playImage, drawButton, selectButton, moveButton, showBorderButton);
         gameManager.setGroups(selectButtonGroup, drawButtonGroup);
         gameManager.setPasteModeButtons(pasteAnd, pasteCpy, pasteOr, pasteXor);
+        gameManager.setThemesCombobox(themes);
+        gameManager.setGenerationLabel(generationLabel);
 
         canvasOuter.setOnScroll(e-> {
             e.consume();
@@ -169,9 +174,7 @@ public class AppController extends VBox {
         canvas.requestFocus();
         box.setOnKeyPressed(hotKeysHandler::onKeyPressed);
     }
-//    @FXML private Label randomProbabilityLabel;
-//    @FXML private Slider randomProbability;
-//    @FXML private Button randomize;
+
     public void initButtonClicks() {
         nextGenerationButton.setOnMouseClicked(e -> gameManager.nextGeneration());
         previousGenerationButton.setOnMouseClicked(e -> gameManager.previousGeneration());
@@ -197,6 +200,7 @@ public class AppController extends VBox {
         savePattern.setOnMouseClicked(e -> savePattern());
         openPattern.setOnMouseClicked(e -> openPattern());
         takePatternPicture.setOnMouseClicked(e -> screenCanvas());
+        fitPatternButton.setOnMouseClicked(e -> fitPattern());
 
         ObservableList<String> patterns = FXCollections.observableArrayList(GameManager.patternManager.getPatterns().stream().map(Pattern::getName).toList());
         patternList.getItems().addAll(patterns);
@@ -224,6 +228,7 @@ public class AppController extends VBox {
         inverseSelectedCells.setOnMouseClicked(e -> iGridService.inverseSelectedCells());
         rotateSelectionRight.setOnMouseClicked(e -> iGridService.rotateSelectedCells(MoveType.RIGHT));
         rotateSelectionLeft.setOnMouseClicked(e -> iGridService.rotateSelectedCells(MoveType.LEFT));
+        cancelSelection.setOnMouseClicked(e -> iGridService.cancelSelection());
 
         pauseOnDraw.setOnMouseClicked(e -> uiHandler.handleOnPauseOnDrawButtonClick(e, pauseOnDraw));
 
@@ -274,10 +279,15 @@ public class AppController extends VBox {
     private void screenCanvas() {
         WritableImage snapshot = canvas.snapshot(null, null);
 
-        File file = new File("canvas-screenshot.png");
         try {
-            ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", file);
-            System.out.println("Screenshot saved to file: " + file.getAbsolutePath());
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG", "*.png"));
+            File file = fileChooser.showSaveDialog(Stage.getWindows().get(0));
+            if (file != null) {
+                ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", file);
+                System.out.println("Screenshot saved to file: " + file.getAbsolutePath());
+            }
         } catch (IOException ex) {
             System.out.println("Error saving screenshot to file: " + ex.getMessage());
         }
@@ -295,7 +305,7 @@ public class AppController extends VBox {
         canvasContainer.setScaleY(scaleValue);
     }
     private void onScroll(double wheelDelta, Point2D mousePoint) {
-        double zoomFactor = Math.exp(wheelDelta * Constants.ZOOM_INTENSITY);
+        double zoomFactor = Math.exp(wheelDelta * zoomIntensity);
 
         Bounds innerBounds = zoomNode.getLayoutBounds();
         Bounds viewportBounds = scrollPane.getViewportBounds();
@@ -304,22 +314,36 @@ public class AppController extends VBox {
         double valY = scrollPane.getVvalue() * (innerBounds.getHeight() - viewportBounds.getHeight());
 
         scaleValue = scaleValue * zoomFactor;
-        if (scaleValue < Constants.MIN_SCALE || scaleValue > Constants.MAX_SCALE) {
-            return;
-        }
-
         updateScale();
-        this.layout();
+        scrollPane.layout();
 
-        Point2D posInZoomTarget = canvasContainer.parentToLocal(zoomNode.parentToLocal(mousePoint));
+        Point2D posInZoomTarget = canvas.parentToLocal(zoomNode.parentToLocal(mousePoint));
 
-        Point2D adjustment = canvasContainer.getLocalToParentTransform().deltaTransform(posInZoomTarget.multiply(zoomFactor - 1));
+        Point2D adjustment = canvas.getLocalToParentTransform().deltaTransform(posInZoomTarget.multiply(zoomFactor - 1));
 
         Bounds updatedInnerBounds = zoomNode.getBoundsInLocal();
         scrollPane.setHvalue((valX + adjustment.getX()) / (updatedInnerBounds.getWidth() - viewportBounds.getWidth()));
         scrollPane.setVvalue((valY + adjustment.getY()) / (updatedInnerBounds.getHeight() - viewportBounds.getHeight()));
     }
 
+    private void fitPattern() {
+        double maxX = 100, minX = 100, maxY = 100, minY = 100;
+        double visibleWidth = canvas.getParent().getLayoutBounds().getWidth();
+        double visibleHeight = canvas.getParent().getLayoutBounds().getHeight();
+
+        double scaleX = visibleWidth / (maxX - minX + 1);
+        double scaleY = visibleHeight / (maxY - minY + 1);
+        double scaleFactor = Math.min(scaleX, scaleY);
+
+        canvas.setScaleX(scaleFactor);
+        canvas.setScaleY(scaleFactor);
+
+        double scrollX = (minX + maxX + 1) / 2 * scaleFactor - visibleWidth / 2;
+        double scrollY = (minY + maxY + 1) / 2 * scaleFactor - visibleHeight / 2;
+
+        scrollPane.setHvalue(scrollX / canvas.getBoundsInParent().getWidth());
+        scrollPane.setVvalue(scrollY / canvas.getBoundsInParent().getHeight());
+    }
 
     public Grid getGrid() {
         return grid;

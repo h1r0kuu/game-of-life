@@ -60,7 +60,7 @@ public class GameLoopManager {
                     double percentage = (frames - 1) / ((Constants.FPS_SET / 2.0) - 1);
                     int rValue = (int) ((1 - percentage) * 255);
                     int gValue = (int) (percentage * 255);
-                    System.out.println(frames);
+                    System.out.println("FPS: " + frames);
                     frames = 0;
                 }
 

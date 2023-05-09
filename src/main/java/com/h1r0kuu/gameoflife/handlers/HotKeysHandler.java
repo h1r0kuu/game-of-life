@@ -24,8 +24,10 @@ public class HotKeysHandler {
         if (e.isControlDown() && e.getCode() == KeyCode.C) {
             ClipboardContent content = new ClipboardContent();
             Cell[][] selectedCells = iGridService.getSelectedCells();
-            content.putString(RLE.encode(selectedCells, "B3/S23"));
-            Clipboard.getSystemClipboard().setContent(content);
+            if(selectedCells.length > 0) {
+                content.putString(RLE.encode(selectedCells, "B3/S23"));
+                Clipboard.getSystemClipboard().setContent(content);
+            }
             e.consume();
         } else if(e.isControlDown() && e.getCode() == KeyCode.V) {
             String rleString = Clipboard.getSystemClipboard().getString();
@@ -45,8 +47,7 @@ public class HotKeysHandler {
         } else if(e.getCode() == KeyCode.D) {
             gameManager.nextGeneration();
         } else if(e.getCode() == KeyCode.C) {
-            GameManager.themeManager.nextTheme();
-
+            gameManager.changeTheme(GameManager.themeManager.nextTheme());
         } else if(e.getCode() == KeyCode.R) {
             gameManager.clearBoard();
         } else if(e.getCode() == KeyCode.F) {
