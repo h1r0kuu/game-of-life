@@ -8,23 +8,19 @@ import javafx.scene.input.MouseEvent;
 
 public class CanvasWrapperMouseHandlers {
     private final ScrollPane canvasWrapper;
-    private double lastX, lastY;
 
     public CanvasWrapperMouseHandlers(ScrollPane canvasWrapper) {
         this.canvasWrapper = canvasWrapper;
     }
 
-    public void onMouseMoved(MouseEvent e) {
-    }
-
-    public void onMousePressed(MouseEvent e) {
-        lastX = e.getSceneX();
-        lastY = e.getSceneY();
-    }
 
     public void onMouseDragged(MouseEvent e) {
         if(GameManager.userActionState.equals(UserActionState.MOVING)) {
             canvasWrapper.setPannable(true);
         }
+    }
+
+    public void onMouseReleased(MouseEvent e) {
+        canvasWrapper.setPannable(false);
     }
 }

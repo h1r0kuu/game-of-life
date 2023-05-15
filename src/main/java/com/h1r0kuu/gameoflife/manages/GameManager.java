@@ -17,9 +17,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.beans.EventHandler;
 import java.util.Stack;
 
 public class GameManager {
@@ -39,6 +41,8 @@ public class GameManager {
     private Button moveButton;
     private Button showBorderButton;
 
+    private Button populationChartButton;
+
     private Button pasteAnd;
     private Button pasteCpy;
     private Button pasteOr;
@@ -49,6 +53,7 @@ public class GameManager {
     private Label generationLabel;
 
     private ObservableList<XYChart.Data<Number, Number>> graphData;
+    private Stage chartStage;
 
     private final Stack<Cell[]> gameBoardHistory = new Stack<>();
     private final Grid grid;
@@ -205,12 +210,13 @@ public class GameManager {
         showBorderButton.setStyle(grid.isShowBorders() ? Constants.ACTIVE_BUTTON : Constants.IDLE_BUTTON);
     }
 
-    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton, Button showBorderButton) {
+    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton, Button showBorderButton, Button populationChart) {
         this.playImage = playImage;
         this.drawButton = drawButton;
         this.selectionButton = selectionButton;
         this.moveButton = moveButton;
         this.showBorderButton = showBorderButton;
+        this.populationChartButton = populationChart;
     }
 
     public void setGroups(Pane selectButtonGroup, Pane drawButtonGroup) {
@@ -223,6 +229,16 @@ public class GameManager {
         this.pasteCpy = pasteCpy;
         this.pasteOr = pasteOr;
         this.pasteXor = pasteXor;
+    }
+
+    public void toggleChart() {
+        if(chartStage.isShowing()) {
+            chartStage.close();
+            populationChartButton.setStyle(Constants.IDLE_BUTTON);
+        } else {
+            chartStage.show();
+            populationChartButton.setStyle(Constants.ACTIVE_BUTTON);
+        }
     }
 
     public Grid getGrid() {
@@ -243,5 +259,13 @@ public class GameManager {
 
     public void addData(int generation, int population) {
         graphData.add(new XYChart.Data<>(generation, population));
+    }
+
+    public void setChartStage(Stage chartStage) {
+        this.chartStage = chartStage;
+    }
+
+    public void onChartClose() {
+        populationChartButton.setStyle(Constants.IDLE_BUTTON);
     }
 }

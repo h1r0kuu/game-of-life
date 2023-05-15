@@ -57,3 +57,12 @@
     -fx-pref-width: 5px;
     -fx-background-radius: 0;
 }
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane {
+    -fx-background-color: rgb(40, 40, 40);
+}
+

@@ -109,45 +109,26 @@ public class GridServiceImpl implements IGridService {
 
     @Override
     public void nextGeneration() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-
-        List<Future<?>> futures = new ArrayList<>();
-
         for (int i = 0; i < rows * cols; i++) {
             final int index = i;
-            Future<?> future = executor.submit(() -> {
-                Cell cell = grid.getCell(index);
-                boolean isCurrentCellAlive  = cell.isAlive();
-                boolean willBeAlive = grid.getRule().apply(grid, this, index);
-                cell.setNextState(willBeAlive);
-                if(isCurrentCellAlive && !willBeAlive) {
-                    grid.decreasePopulation();
-                } else if(!isCurrentCellAlive && willBeAlive) {
-                    grid.increasePopulation();
-                }
-
-                if (isCurrentCellAlive && willBeAlive || !isCurrentCellAlive  && willBeAlive) {
-                    cell.setWasAlive(false);
-                } else if (isCurrentCellAlive ) {
-                    cell.setWasAlive(true);
-                }
-
-                cell.update();
-            });
-
-            futures.add(future);
-        }
-
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-
+            Cell cell = grid.getCell(index);
+            boolean isCurrentCellAlive  = cell.isAlive();
+            boolean willBeAlive = grid.getRule().apply(grid, this, index);
+            cell.setNextState(willBeAlive);
+            if(isCurrentCellAlive && !willBeAlive) {
+                grid.decreasePopulation();
+            } else if(!isCurrentCellAlive && willBeAlive) {
+                grid.increasePopulation();
             }
-        }
 
-        executor.shutdown();
+            if (isCurrentCellAlive && willBeAlive || !isCurrentCellAlive  && willBeAlive) {
+                cell.setWasAlive(false);
+            } else if (isCurrentCellAlive ) {
+                cell.setWasAlive(true);
+            }
+
+            cell.update();
+        }
 
         for (int i = 0; i < rows * cols; i++) {
             Cell cell = grid.getCell(i);

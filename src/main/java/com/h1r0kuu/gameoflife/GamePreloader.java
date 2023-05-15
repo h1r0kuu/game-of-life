@@ -1,7 +1,7 @@
 package com.h1r0kuu.gameoflife;
 
 import com.h1r0kuu.gameoflife.controllers.AppController;
-import com.h1r0kuu.gameoflife.controllers.PopulationGraphController;
+import com.h1r0kuu.gameoflife.controllers.PopulationChartController;
 import com.h1r0kuu.gameoflife.manages.GameLoopManager;
 import com.h1r0kuu.gameoflife.manages.GameManager;
 import com.h1r0kuu.gameoflife.models.Pattern;
@@ -53,18 +53,21 @@ public class GamePreloader extends Preloader {
                 preloaderStage.hide();
                 try {
                     AppController appController = new AppController();
+                    GameManager gameManager = appController.getGameManager();
 
                     Scene scene = new Scene(appController);
                     primaryStage.setTitle("Game Of Life");
                     primaryStage.setScene(scene);
                     primaryStage.show();
 
-                    PopulationGraphController populationGraphController = new PopulationGraphController();
-                    Stage graphStage = new Stage();
-                    graphStage.setScene(new Scene(populationGraphController));
-                    graphStage.show();
+                    PopulationChartController populationChartController = new PopulationChartController();
+                    Stage chartStage = new Stage();
+                    chartStage.setScene(new Scene(populationChartController));
 
-                    appController.getGameManager().setGraphData(populationGraphController.getData());
+                    gameManager.setGraphData(populationChartController.getData());
+                    gameManager.setChartStage(chartStage);
+                    chartStage.setOnCloseRequest(event -> gameManager.onChartClose());
+
 
                     GameLoopManager gameLoopManager = new GameLoopManager(appController.getGameManager(), appController.getGridService(), appController.getLifeRenderer());
                     gameLoopManager.startGameLoop();

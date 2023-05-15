@@ -19,22 +19,33 @@ import com.h1r0kuu.gameoflife.service.grid.IGridService;
 import com.h1r0kuu.gameoflife.service.grid.GridServiceImpl;
 import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.RLE;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventDispatchChain;
+import javafx.event.EventDispatcher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -50,7 +61,6 @@ public class AppController extends VBox {
     private static final Logger logger = LogManager.getLogger(GameOfLife.class);
 
     private double scaleValue = 0.7;
-    private final double zoomIntensity = 0.1;
 
     // define UI elements
     @FXML private Button newPattern;
@@ -64,6 +74,7 @@ public class AppController extends VBox {
     @FXML private Button selectButton;
     @FXML private Pane selectButtonGroup;
     @FXML private Button moveButton;
+    @FXML private Button populationChart;
     @FXML private Button zoomIn;
     @FXML private Button zoomOut;
     @FXML private Button showBorderButton;
@@ -98,11 +109,12 @@ public class AppController extends VBox {
     @FXML private Label gameSpeedLabel;
     @FXML private ScrollPane scrollPane;
     @FXML private StackPane canvasContainer;
-    @FXML private Group zoomNode;
+//    @FXML private Group zoomNode;
     @FXML private Label cellInfo;
     @FXML private Label generationLabel;
     @FXML private VBox box;
-    @FXML private VBox canvasOuter;
+    @FXML private VBox wrapper;
+    @FXML private VBox outerNode;
 
     private Grid grid;
     private GameManager gameManager;
@@ -140,28 +152,52 @@ public class AppController extends VBox {
             Cell[][] cells = RLE.decode(pattern.getRleString());
             iGridService.setPattern(cells);
         }
-        gameManager.setButtons(playImage, drawButton, selectButton, moveButton, showBorderButton);
+        gameManager.setButtons(playImage, drawButton, selectButton, moveButton, showBorderButton, populationChart);
         gameManager.setGroups(selectButtonGroup, drawButtonGroup);
         gameManager.setPasteModeButtons(pasteAnd, pasteCpy, pasteOr, pasteXor);
         gameManager.setThemesCombobox(themes);
         gameManager.setGenerationLabel(generationLabel);
 
-        canvasOuter.setOnScroll(e-> {
-            e.consume();
-            onScroll(e.getTextDeltaY(), new Point2D(e.getX(), e.getY()));
-        });
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
 
         updateScale();
         initCanvasHandlers();
         initScrollPaneHandlers();
         initButtonClicks();
+
+        scrollPane.setHvalue(0.5);
+        scrollPane.setVvalue(0.5);
+    }
+
+    private void handleScroll(ScrollEvent event) {
+        double currentScale = canvas.getScaleX();
+
+        double zoomFactor = 1.1;
+        if (event.getDeltaY() < 0) {
+            zoomFactor = 1 / zoomFactor;
+        }
+
+        double mousePosX = event.getX() - canvasContainer.getBoundsInParent().getMinX();
+        double mousePosY = event.getY() - canvasContainer.getBoundsInParent().getMinY();
+
+        canvas.setScaleX(currentScale * zoomFactor);
+        canvas.setScaleY(currentScale * zoomFactor);
+
+        double newMousePosX = event.getX() - canvasContainer.getBoundsInParent().getMinX();
+        double newMousePosY = event.getY() - canvasContainer.getBoundsInParent().getMinY();
+        double deltaX = newMousePosX - mousePosX;
+        double deltaY = newMousePosY - mousePosY;
+        scrollPane.setHvalue(scrollPane.getHvalue() + deltaX / canvasContainer.getWidth());
+        scrollPane.setVvalue(scrollPane.getVvalue() + deltaY / canvasContainer.getHeight());
+
+        event.consume();
     }
 
     public void initScrollPaneHandlers() {
         CanvasWrapperMouseHandlers canvasWrapperMouseHandlers = new CanvasWrapperMouseHandlers(scrollPane);
-        scrollPane.setOnMouseMoved(canvasWrapperMouseHandlers::onMouseMoved);
-        scrollPane.setOnMousePressed(canvasWrapperMouseHandlers::onMousePressed);
-        scrollPane.setOnMouseDragged(canvasWrapperMouseHandlers::onMouseDragged);
+        scrollPane.addEventFilter(MouseEvent.MOUSE_RELEASED, canvasWrapperMouseHandlers::onMouseReleased);
+        scrollPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, canvasWrapperMouseHandlers::onMouseDragged);
+
     }
 
     public void initCanvasHandlers() {
@@ -189,6 +225,8 @@ public class AppController extends VBox {
         pasteOr.setOnMouseClicked(e -> gameManager.changePasteMode(PastingType.OR));
         pasteXor.setOnMouseClicked(e -> gameManager.changePasteMode(PastingType.XOR));
 
+        populationChart.setOnMouseClicked(e -> gameManager.toggleChart());
+
         showBorderButton.setOnMouseClicked(e -> gameManager.toggleShowBorders());
 
         ObservableList<String> themeNames = FXCollections.observableArrayList(GameManager.themeManager.getThemes().stream().map(t -> t.THEME_NAME).toList());
@@ -200,7 +238,6 @@ public class AppController extends VBox {
         savePattern.setOnMouseClicked(e -> savePattern());
         openPattern.setOnMouseClicked(e -> openPattern());
         takePatternPicture.setOnMouseClicked(e -> screenCanvas());
-        fitPatternButton.setOnMouseClicked(e -> fitPattern());
 
         ObservableList<String> patterns = FXCollections.observableArrayList(GameManager.patternManager.getPatterns().stream().map(Pattern::getName).toList());
         patternList.getItems().addAll(patterns);
@@ -217,8 +254,8 @@ public class AppController extends VBox {
         gameSpeed.valueProperty().addListener((ov, old_val, new_val) -> uiHandler.handleGameSpeedChange(new_val, gameSpeedLabel, gameSpeed));
 
         int randomPercentage = (int) ((randomProbability.getValue() * 100) / randomProbability.getMax());
-        String styleProbabily = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", randomPercentage, randomPercentage);
-        randomProbability.setStyle(styleProbabily);
+        String styleProbability = String.format("-track-color: linear-gradient(to right, #0096c9 %d%%, rgb(80,80,80) %d%%);", randomPercentage, randomPercentage);
+        randomProbability.setStyle(styleProbability);
         randomProbability.valueProperty().addListener((ov, old_val, new_val) -> uiHandler.handleRandomProbabilityChange(new_val, randomProbabilityLabel, randomProbability));
 
         moveSelectionLeft.setOnMouseClicked(e -> iGridService.moveSelectedCells(MoveType.LEFT));
@@ -303,46 +340,6 @@ public class AppController extends VBox {
     private void updateScale() {
         canvasContainer.setScaleX(scaleValue);
         canvasContainer.setScaleY(scaleValue);
-    }
-    private void onScroll(double wheelDelta, Point2D mousePoint) {
-        double zoomFactor = Math.exp(wheelDelta * zoomIntensity);
-
-        Bounds innerBounds = zoomNode.getLayoutBounds();
-        Bounds viewportBounds = scrollPane.getViewportBounds();
-
-        double valX = scrollPane.getHvalue() * (innerBounds.getWidth() - viewportBounds.getWidth());
-        double valY = scrollPane.getVvalue() * (innerBounds.getHeight() - viewportBounds.getHeight());
-
-        scaleValue = scaleValue * zoomFactor;
-        updateScale();
-        scrollPane.layout();
-
-        Point2D posInZoomTarget = canvas.parentToLocal(zoomNode.parentToLocal(mousePoint));
-
-        Point2D adjustment = canvas.getLocalToParentTransform().deltaTransform(posInZoomTarget.multiply(zoomFactor - 1));
-
-        Bounds updatedInnerBounds = zoomNode.getBoundsInLocal();
-        scrollPane.setHvalue((valX + adjustment.getX()) / (updatedInnerBounds.getWidth() - viewportBounds.getWidth()));
-        scrollPane.setVvalue((valY + adjustment.getY()) / (updatedInnerBounds.getHeight() - viewportBounds.getHeight()));
-    }
-
-    private void fitPattern() {
-        double maxX = 100, minX = 100, maxY = 100, minY = 100;
-        double visibleWidth = canvas.getParent().getLayoutBounds().getWidth();
-        double visibleHeight = canvas.getParent().getLayoutBounds().getHeight();
-
-        double scaleX = visibleWidth / (maxX - minX + 1);
-        double scaleY = visibleHeight / (maxY - minY + 1);
-        double scaleFactor = Math.min(scaleX, scaleY);
-
-        canvas.setScaleX(scaleFactor);
-        canvas.setScaleY(scaleFactor);
-
-        double scrollX = (minX + maxX + 1) / 2 * scaleFactor - visibleWidth / 2;
-        double scrollY = (minY + maxY + 1) / 2 * scaleFactor - visibleHeight / 2;
-
-        scrollPane.setHvalue(scrollX / canvas.getBoundsInParent().getWidth());
-        scrollPane.setVvalue(scrollY / canvas.getBoundsInParent().getHeight());
     }
 
     public Grid getGrid() {

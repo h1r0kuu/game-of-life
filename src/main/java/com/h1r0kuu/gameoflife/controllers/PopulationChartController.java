@@ -11,13 +11,13 @@ import javafx.scene.layout.AnchorPane;
 
 import java.io.IOException;
 
-public class PopulationGraphController extends AnchorPane {
+public class PopulationChartController extends AnchorPane {
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private NumberAxis population;
     @FXML private NumberAxis generation;
     private XYChart.Series<Number, Number> series;
 
-    public PopulationGraphController() {
+    public PopulationChartController() {
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("/fxml/population.fxml"));
         loader.setController(this);
         loader.setRoot(this);
