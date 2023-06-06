@@ -1,5 +1,5 @@
 # game-of-life
-WSB Projekt zaliczeniowy na programowanie zaawansowane
+WSB Projekt zaliczeniowy z przedmiotu programowanie zaawansowane
 Robert 16810
 
 # Installation 
