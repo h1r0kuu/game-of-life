@@ -20,7 +20,6 @@ public interface IGridService {
     void pasteCells(int startX, int startY);
     void clearSelectedCells();
     void moveSelectedCells(MoveType moveType);
-    void rotateSelectedCells(MoveType moveType);
     void inverseSelectedCells();
     void cancelSelection();
     Cell[][] getContent(Grid grid);

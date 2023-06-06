@@ -11,10 +11,6 @@ import com.h1r0kuu.gameoflife.models.Pattern;
 import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.RLE;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
-
 public class GridServiceImpl implements IGridService {
 
     private final Grid grid;
@@ -35,7 +31,6 @@ public class GridServiceImpl implements IGridService {
                 int j = colStart + patternJ;
                 if(patternCells[patternI][patternJ].isAlive()) {
                     grid.getCell(i, j).setAlive(true);
-                    grid.increasePopulation();
                 }
             }
         }
@@ -76,7 +71,6 @@ public class GridServiceImpl implements IGridService {
             for (int col = startCol; col <= endCol; col++) {
                 if (Math.random() <= probability / 100) {
                     grid.getCell(row, col).setAlive(true);
-                    grid.increasePopulation();
                 }
             }
         }
@@ -115,11 +109,6 @@ public class GridServiceImpl implements IGridService {
             boolean isCurrentCellAlive  = cell.isAlive();
             boolean willBeAlive = grid.getRule().apply(grid, this, index);
             cell.setNextState(willBeAlive);
-            if(isCurrentCellAlive && !willBeAlive) {
-                grid.decreasePopulation();
-            } else if(!isCurrentCellAlive && willBeAlive) {
-                grid.increasePopulation();
-            }
 
             if (isCurrentCellAlive && willBeAlive || !isCurrentCellAlive  && willBeAlive) {
                 cell.setWasAlive(false);
@@ -129,11 +118,15 @@ public class GridServiceImpl implements IGridService {
 
             cell.update();
         }
-
+        int population = 0;
         for (int i = 0; i < rows * cols; i++) {
             Cell cell = grid.getCell(i);
             cell.applyNextState();
+            if(cell.isAlive()) {
+                population++;
+            }
         }
+        grid.setPopulation(population);
     }
 
     @Override
@@ -143,7 +136,6 @@ public class GridServiceImpl implements IGridService {
             cell.reset();
             cell.setAlive(true);
             cell.setEvent(CellEvent.REVIEW);
-            grid.increasePopulation();
         }
     }
 
@@ -154,7 +146,6 @@ public class GridServiceImpl implements IGridService {
             cell.reset();
             cell.setAlive(false);
             cell.setEvent(CellEvent.KILL);
-            grid.decreasePopulation();
         }
     }
 
@@ -214,7 +205,6 @@ public class GridServiceImpl implements IGridService {
         for (int row = grid.getRectangle().getSelectStartRow(); row <= grid.getRectangle().getSelectEndRow(); row++) {
             for (int col = grid.getRectangle().getSelectStartCol(); col <= grid.getRectangle().getSelectEndCol(); col++) {
                 grid.getCell(row, col).setAlive(false);
-                grid.decreasePopulation();
             }
         }
     }
@@ -235,16 +225,6 @@ public class GridServiceImpl implements IGridService {
         }
         clearSelectedCells();
         rectangle.move(moveType);
-        setCellToPrevSelected(rectangle, prevSelectedCells);
-    }
-
-    @Override
-    public void rotateSelectedCells(MoveType moveType) {
-        SelectionRectangle rectangle = grid.getRectangle();
-        Cell[][] prevSelectedCells = getSelectedCells();
-
-        rectangle.rotate(moveType);
-
         setCellToPrevSelected(rectangle, prevSelectedCells);
     }
 

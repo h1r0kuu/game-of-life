@@ -154,10 +154,6 @@ public class Cell {
         this.previousColor = previousColor;
     }
 
-    public boolean nextState() {
-        return nextState;
-    }
-
     public void setNextState(boolean nextState) {
         this.nextState = nextState;
     }

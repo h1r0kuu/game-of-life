@@ -1,20 +1,14 @@
 package com.h1r0kuu.gameoflife.models;
 
 import com.h1r0kuu.gameoflife.components.SelectionRectangle;
-import com.h1r0kuu.gameoflife.utils.Constants;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class Grid {
-    private static final Logger logger = LogManager.getLogger(Grid.class);
-
     private Rule rule;
 
     public final int rows;
     public final int cols;
     private Cell[] cells;
     private Cell[][] cellsToPaste;
-    private boolean showBorders = false;
     private final SelectionRectangle rectangle;
     private int population = 0;
 
@@ -44,14 +38,6 @@ public class Grid {
 
     public void setCell(int row, int column, Cell cell) {
         cells[row * cols + column] = cell;
-    }
-
-    public boolean isShowBorders() {
-        return showBorders;
-    }
-
-    public void setShowBorders(boolean showBorders) {
-        this.showBorders = showBorders;
     }
 
     public int getRows() {
@@ -100,13 +86,5 @@ public class Grid {
 
     public void setPopulation(int population) {
         this.population = population;
-    }
-
-    public void increasePopulation() {
-        this.population += 1;
-    }
-
-    public void decreasePopulation() {
-        this.population -= 1;
     }
 }

@@ -7,8 +7,8 @@ module com.h1r0kuu.gameoflife {
     requires java.desktop;
     requires javafx.swing;
 
-    opens com.h1r0kuu.gameoflife to javafx.fxml;
     exports com.h1r0kuu.gameoflife;
+    opens com.h1r0kuu.gameoflife to javafx.fxml;
     exports com.h1r0kuu.gameoflife.manages;
     opens com.h1r0kuu.gameoflife.manages to javafx.fxml;
     exports com.h1r0kuu.gameoflife.models;
@@ -19,6 +19,8 @@ module com.h1r0kuu.gameoflife {
     opens com.h1r0kuu.gameoflife.enums to javafx.fxml;
     exports com.h1r0kuu.gameoflife.controllers;
     opens com.h1r0kuu.gameoflife.controllers to javafx.fxml;
+    exports com.h1r0kuu.gameoflife.components;
+    opens com.h1r0kuu.gameoflife.components to javafx.fxml;
     exports com.h1r0kuu.gameoflife.service.grid;
     opens com.h1r0kuu.gameoflife.service.grid to javafx.fxml;
     exports com.h1r0kuu.gameoflife.renderer;

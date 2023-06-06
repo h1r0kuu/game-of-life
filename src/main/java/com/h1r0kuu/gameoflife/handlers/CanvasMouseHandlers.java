@@ -23,11 +23,10 @@ public class CanvasMouseHandlers {
     private double mouseY;
     private double startX;
     private double startY;
-    private double endX;
-    private double endY;
     private double selectX;
     private double selectY;
     private int prevRow, prevCol;
+
     public CanvasMouseHandlers(GameManager gameManager, IGridService gridService, Grid grid, Label cellInfo) {
         this.gameManager = gameManager;
         this.gridService = gridService;
@@ -90,7 +89,10 @@ public class CanvasMouseHandlers {
             }
             case PASTING -> {
                 gridService.pasteCells((int) mouseX, (int) mouseY);
-                GameManager.userActionState = UserActionState.SELECTING;
+                if(GameManager.userPreviousState != UserActionState.PASTING)
+                    GameManager.userActionState = GameManager.userPreviousState;
+                else
+                    GameManager.userActionState = UserActionState.SELECTING;
                 grid.getRectangle().getRectangleForPaste().setHeight(0);
                 grid.getRectangle().getRectangleForPaste().setWidth(0);
             }
@@ -139,8 +141,9 @@ public class CanvasMouseHandlers {
 
             }
             case SELECTING -> {
-                grid.getRectangle().selectRange(selectX, selectY, mouseX, mouseY);
-
+                if (mouseX > 0 && mouseY > 0 && mouseY <= cols * Constants.CELL_SIZE && mouseX <= rows * Constants.CELL_SIZE) {
+                    grid.getRectangle().selectRange(selectX, selectY, mouseX, mouseY);
+                }
             }
         }
 

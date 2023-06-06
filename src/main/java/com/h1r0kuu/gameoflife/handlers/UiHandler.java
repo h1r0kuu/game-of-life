@@ -22,7 +22,6 @@ public class UiHandler {
 
     public void handleThemeChange(Number newValue, ComboBox<String> themes) {
         String newTheme = themes.getItems().get((Integer) newValue);
-//        GameManager.themeManager.changeTheme(newTheme);
         gameManager.changeTheme(newTheme);
     }
 

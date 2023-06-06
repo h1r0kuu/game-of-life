@@ -21,7 +21,6 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.beans.EventHandler;
 import java.util.Stack;
 
 public class GameManager {
@@ -39,7 +38,6 @@ public class GameManager {
     private Button selectionButton;
     private Pane selectButtonGroup;
     private Button moveButton;
-    private Button showBorderButton;
 
     private Button populationChartButton;
 
@@ -61,6 +59,7 @@ public class GameManager {
     private final Canvas canvas;
 
     public static UserActionState userActionState = UserActionState.DRAWING;
+    public static UserActionState userPreviousState = UserActionState.DRAWING;
     public static PastingType pastingType = PastingType.OR;
     public static final ThemeManager themeManager = new ThemeManager();
     public static final PatternManager patternManager = new PatternManager();
@@ -92,6 +91,7 @@ public class GameManager {
 
     public void clearBoard() {
         iGridService.clearGrid();
+        graphData.clear();
         setGeneration(0);
         generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
     }
@@ -205,17 +205,11 @@ public class GameManager {
         themes.setValue(newTheme);
     }
 
-    public void toggleShowBorders() {
-        grid.setShowBorders(!grid.isShowBorders());
-        showBorderButton.setStyle(grid.isShowBorders() ? Constants.ACTIVE_BUTTON : Constants.IDLE_BUTTON);
-    }
-
-    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton, Button showBorderButton, Button populationChart) {
+    public void setButtons(ImageView playImage, Button drawButton, Button selectionButton, Button moveButton, Button populationChart) {
         this.playImage = playImage;
         this.drawButton = drawButton;
         this.selectionButton = selectionButton;
         this.moveButton = moveButton;
-        this.showBorderButton = showBorderButton;
         this.populationChartButton = populationChart;
     }
 

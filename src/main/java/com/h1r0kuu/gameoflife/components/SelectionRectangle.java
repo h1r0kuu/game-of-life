@@ -113,40 +113,6 @@ public class SelectionRectangle {
         update();
     }
 
-    public void rotate(MoveType moveType) {
-        int centerX = (selectStartRow + selectEndRow) / 2;
-        int centerY = (selectStartCol + selectEndCol) / 2;
-
-        int[] topLeft = rotatePoint(selectStartRow, selectStartCol, centerX, centerY, moveType);
-        int[] topRight = rotatePoint(selectEndRow, selectStartCol, centerX, centerY, moveType);
-        int[] bottomLeft = rotatePoint(selectStartRow, selectEndCol, centerX, centerY, moveType);
-        int[] bottomRight = rotatePoint(selectEndRow, selectEndCol, centerX, centerY, moveType);
-
-        selectStartRow = Math.min(topLeft[0], Math.min(topRight[0], Math.min(bottomLeft[0], bottomRight[0])));
-        selectStartCol = Math.min(topLeft[1], Math.min(topRight[1], Math.min(bottomLeft[1], bottomRight[1])));
-        selectEndRow = Math.max(topLeft[0], Math.max(topRight[0], Math.max(bottomLeft[0], bottomRight[0])));
-        selectEndCol = Math.max(topLeft[1], Math.max(topRight[1], Math.max(bottomLeft[1], bottomRight[1])));
-
-        selectedColsLength = (selectEndRow - selectStartRow) + 1;
-        selectedRowsLength = (selectEndCol - selectStartCol) + 1;
-
-        update();
-    }
-
-    private int[] rotatePoint(int row, int col, int centerX, int centerY, MoveType moveType) {
-        int[] result = new int[2];
-        int dx = col - centerX;
-        int dy = row - centerY;
-        if (moveType == MoveType.LEFT) {
-            result[0] = centerY + dx;
-            result[1] = centerX - dy;
-        } else if (moveType == MoveType.RIGHT) {
-            result[0] = centerY - dx;
-            result[1] = centerX + dy;
-        }
-        return result;
-    }
-
     public void update() {
         setX(selectStartRow);
         setY(selectStartCol);
@@ -169,48 +135,24 @@ public class SelectionRectangle {
         return selectStartRow;
     }
 
-    public void setSelectStartRow(int selectStartRow) {
-        this.selectStartRow = selectStartRow;
-    }
-
     public int getSelectStartCol() {
         return selectStartCol;
-    }
-
-    public void setSelectStartCol(int selectStartCol) {
-        this.selectStartCol = selectStartCol;
     }
 
     public int getSelectEndRow() {
         return selectEndRow;
     }
 
-    public void setSelectEndRow(int selectEndRow) {
-        this.selectEndRow = selectEndRow;
-    }
-
     public int getSelectEndCol() {
         return selectEndCol;
-    }
-
-    public void setSelectEndCol(int selectEndCol) {
-        this.selectEndCol = selectEndCol;
     }
 
     public int getSelectedColsLength() {
         return selectedColsLength;
     }
 
-    public void setSelectedColsLength(int selectedColsLength) {
-        this.selectedColsLength = selectedColsLength;
-    }
-
     public int getSelectedRowsLength() {
         return selectedRowsLength;
-    }
-
-    public void setSelectedRowsLength(int selectedRowsLength) {
-        this.selectedRowsLength = selectedRowsLength;
     }
 
     public Rectangle getRectangleForPaste() {

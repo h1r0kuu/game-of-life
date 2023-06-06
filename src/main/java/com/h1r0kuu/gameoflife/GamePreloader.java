@@ -17,8 +17,13 @@ import javafx.scene.control.ProgressBar;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,6 +42,10 @@ public class GamePreloader extends Preloader {
                 progressBar = (ProgressBar) fxmlLoader.getNamespace().get("progressBar");
                 progressText = (Label) fxmlLoader.getNamespace().get("progressText");
                 preloaderStage = new Stage();
+                preloaderStage.setOnCloseRequest(e -> {
+                    Platform.exit();
+                    System.exit(0);
+                });
                 preloaderStage.setScene(new Scene(root));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -47,7 +56,11 @@ public class GamePreloader extends Preloader {
     @Override
     public void start(Stage primaryStage) throws Exception {
         executor.execute(() -> {
-            loadPatterns();
+            try {
+                loadPatterns();
+            } catch (IOException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
 
             Platform.runLater(() -> {
                 preloaderStage.hide();
@@ -79,52 +92,60 @@ public class GamePreloader extends Preloader {
         Platform.runLater(() -> preloaderStage.show());
     }
 
-    @Override
-    public void handleApplicationNotification(PreloaderNotification info) {
-        if (info instanceof ProgressNotification) {
-            double progress = ((ProgressNotification) info).getProgress();
-            Platform.runLater(() -> progressBar.setProgress(progress));
+    private static String readFileContent(Path filePath, Charset charset) {
+        try {
+            byte[] encodedBytes = Files.readAllBytes(filePath);
+            return new String(encodedBytes, charset);
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage() + " ");
+            return null;
+        }
+    }
+    private void loadPatterns() throws IOException, URISyntaxException {
+        Path path = getResourcePath(Constants.PATTERNS_FOLDER_NAME);
+        if (path != null) {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+                long fileCount = Files.list(path).count();
+                AtomicInteger fileCounter = new AtomicInteger();
+                for (Path flPath : directoryStream) {
+                    String content = readFileContent(flPath, StandardCharsets.UTF_8);
+                    String name = null;
+                    try {
+                        name = RLE.getName(content);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (name == null) {
+                        name = flPath.getFileName().toString();
+                    }
+                    Pattern pattern = new Pattern(content);
+                    if (pattern.getName() == null) {
+                        pattern.setName(name);
+                    }
+
+                    GameManager.patternManager.addPattern(pattern);
+                    fileCounter.incrementAndGet();
+                    double progress = fileCounter.get() / (double) fileCount;
+                    Platform.runLater(() -> {
+                        progressText.setText("Patterns loaded %d/%d".formatted(fileCounter.get(), fileCount));
+                        progressBar.setProgress(progress);
+                    });
+                }
+            }
         }
     }
 
-    private void loadPatterns() {
-        ClassLoader classLoader = getClass().getClassLoader();
-
-        URL url = classLoader.getResource(Constants.PATTERNS_FOLDER_NAME);
-        String path = url.getPath();
-        File folder = new File(path);
-        File[] listFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".rle"));
-        long finalTotalFiles = listFiles.length;
-
-        AtomicInteger fileCount = new AtomicInteger();
-        Arrays.stream(listFiles).forEach(file -> {
-            String content = null;
-            try {
-                content = RLE.read(file.getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+    private static Path getResourcePath(String folderName) throws URISyntaxException, IOException {
+        URL url = Main.class.getClassLoader().getResource(folderName);
+        if (url != null) {
+            URI uri = url.toURI();
+            if (uri.getScheme().equals("file")) {
+                return Paths.get(uri);
+            } else if (uri.getScheme().equals("jar")) {
+                FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
+                return fileSystem.getPath(folderName);
             }
-            String name = null;
-            try {
-                name = RLE.getName(content);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (name == null) {
-                name = file.getName();
-            }
-            Pattern pattern = new Pattern(content);
-            if (pattern.getName() == null) {
-                pattern.setName(name);
-            }
-
-            GameManager.patternManager.addPattern(pattern);
-            fileCount.incrementAndGet();
-            double progress = fileCount.get() / (double) finalTotalFiles;
-            Platform.runLater(() -> {
-                progressText.setText("Patterns loaded %d/%d".formatted(fileCount.get(), finalTotalFiles));
-                progressBar.setProgress(progress);
-            });
-        });
+        }
+        return null;
     }
 }

@@ -66,18 +66,6 @@
                                     <Tooltip text="Nudge left" />
                                  </tooltip>
                               </Button>
-                                    <Button fx:id="rotateSelectionRight" layoutX="58.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
-                                 <graphic>
-                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../images/rotate-right.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                                 <tooltip>
-                                    <Tooltip text="Rotate clockwise" />
-                                 </tooltip>
-                              </Button>
                                     <Button fx:id="inverseSelectedCells" layoutX="107.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                                  <graphic>
                                     <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
@@ -124,18 +112,6 @@
                                  </graphic>
                                  <tooltip>
                                     <Tooltip text="Nudge up" />
-                                 </tooltip>
-                              </Button>
-                                    <Button fx:id="rotateSelectionLeft" layoutX="9.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
-                                 <graphic>
-                                    <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../images/rotate-left.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                                 <tooltip>
-                                    <Tooltip text="Rotate counter-clockwise" />
                                  </tooltip>
                               </Button>
                                     <Button fx:id="cancelSelection" layoutX="155.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
@@ -195,9 +171,9 @@
                                     <Tooltip text="Nudge up" />
                                  </tooltip>
                               </Button>
-                              <Slider fx:id="randomProbability" layoutX="9.0" layoutY="135.0" majorTickUnit="8.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="50.0" />
-                              <Label fx:id="randomProbabilityLabel" layoutX="22.0" layoutY="144.0" mouseTransparent="true" prefHeight="17.0" prefWidth="30.0" text="50 %" textFill="WHITE" />
-                              <Button fx:id="randomize" layoutX="72.0" layoutY="135.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                              <Slider fx:id="randomProbability" layoutX="5.0" layoutY="93.0" majorTickUnit="8.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="49.0" styleClass="slider" value="50.0" />
+                              <Label fx:id="randomProbabilityLabel" layoutX="14.0" layoutY="101.0" mouseTransparent="true" prefHeight="17.0" prefWidth="30.0" text="50 %" textFill="WHITE" />
+                              <Button fx:id="randomize" layoutX="59.0" layoutY="93.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                                  <graphic>
                                     <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
@@ -322,19 +298,8 @@
                      <tooltip>
                         <Tooltip text="Pan" />
                      </tooltip></Button>
-                        <Button fx:id="showBorderButton" layoutX="665.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
-                     <graphic>
-                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/grid.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <tooltip>
-                        <Tooltip text="Toggle gridlines" />
-                     </tooltip></Button>
                         <ComboBox fx:id="themes" layoutX="714.0" layoutY="11.0" prefHeight="32.0" prefWidth="95.0" styleClass="themes" />
-                  <Button fx:id="populationChart" layoutX="614.0" layoutY="10.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
+                  <Button fx:id="populationChart" layoutX="665.0" layoutY="11.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                      <graphic>
                         <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -409,17 +374,21 @@
                 </Pane>
             </left>
          <center>
-            <VBox fx:id="wrapper" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+            <VBox fx:id="vbox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
                <children>
                   <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="604.0" prefWidth="739.0" vbarPolicy="NEVER">
                      <content>
-                        <StackPane fx:id="canvasContainer" prefHeight="602.0" prefWidth="737.0">
+                        <VBox fx:id="wrapper" alignment="CENTER">
                            <children>
-                              <Canvas fx:id="canvas" height="4096.0" width="4096.0" />
-                              <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
-                              <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                              <StackPane fx:id="canvasContainer" prefHeight="602.0" prefWidth="737.0">
+                                 <children>
+                                    <Canvas fx:id="canvas" height="4096.0" width="4096.0" />
+                                    <Rectangle fx:id="selectRectangle" arcHeight="5.0" arcWidth="5.0" fill="#0000ffc2" mouseTransparent="true" stroke="RED" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                    <Rectangle fx:id="pasteRectangle" arcHeight="5.0" arcWidth="5.0" fill="#ff0000c2" mouseTransparent="true" opacity="0.6" stroke="BLUE" strokeType="INSIDE" StackPane.alignment="TOP_LEFT" />
+                                 </children>
+                              </StackPane>
                            </children>
-                        </StackPane>
+                        </VBox>
                      </content>
                   </ScrollPane>
                </children>

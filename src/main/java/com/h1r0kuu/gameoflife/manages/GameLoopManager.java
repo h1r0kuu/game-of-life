@@ -13,7 +13,6 @@ public class GameLoopManager {
     private AnimationTimer animationTimer;
     private final LifeRenderer lifeRenderer;
     private final GameManager gameManager;
-    //    private ButtonComponent fpsCounterButton;
     private IGridService IGridService;
 
     private final long timePerFrame = (long) (1_000_000_000.0 / Constants.FPS_SET);
@@ -57,9 +56,6 @@ public class GameLoopManager {
                 long elapsedMillis = (System.nanoTime() - lastCheck) / 1_000_000L;
                 if (elapsedMillis >= 1000) {
                     lastCheck = System.nanoTime();
-                    double percentage = (frames - 1) / ((Constants.FPS_SET / 2.0) - 1);
-                    int rValue = (int) ((1 - percentage) * 255);
-                    int gValue = (int) (percentage * 255);
                     System.out.println("FPS: " + frames);
                     frames = 0;
                 }

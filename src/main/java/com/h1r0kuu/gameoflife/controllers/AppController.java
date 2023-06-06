@@ -19,20 +19,10 @@ import com.h1r0kuu.gameoflife.service.grid.IGridService;
 import com.h1r0kuu.gameoflife.service.grid.GridServiceImpl;
 import com.h1r0kuu.gameoflife.utils.Constants;
 import com.h1r0kuu.gameoflife.utils.RLE;
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
-import javafx.event.EventDispatchChain;
-import javafx.event.EventDispatcher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
@@ -44,8 +34,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.transform.Scale;
-import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -90,8 +78,6 @@ public class AppController extends VBox {
     @FXML private Button moveSelectionRight;
     @FXML private Button moveSelectionUp;
     @FXML private Button moveSelectionDown;
-    @FXML private Button rotateSelectionRight;
-    @FXML private Button rotateSelectionLeft;
     @FXML private Button inverseSelectedCells;
     @FXML private Button cancelSelection;
     @FXML private Label randomProbabilityLabel;
@@ -109,7 +95,6 @@ public class AppController extends VBox {
     @FXML private Label gameSpeedLabel;
     @FXML private ScrollPane scrollPane;
     @FXML private StackPane canvasContainer;
-//    @FXML private Group zoomNode;
     @FXML private Label cellInfo;
     @FXML private Label generationLabel;
     @FXML private VBox box;
@@ -152,7 +137,7 @@ public class AppController extends VBox {
             Cell[][] cells = RLE.decode(pattern.getRleString());
             iGridService.setPattern(cells);
         }
-        gameManager.setButtons(playImage, drawButton, selectButton, moveButton, showBorderButton, populationChart);
+        gameManager.setButtons(playImage, drawButton, selectButton, moveButton, populationChart);
         gameManager.setGroups(selectButtonGroup, drawButtonGroup);
         gameManager.setPasteModeButtons(pasteAnd, pasteCpy, pasteOr, pasteXor);
         gameManager.setThemesCombobox(themes);
@@ -170,25 +155,28 @@ public class AppController extends VBox {
     }
 
     private void handleScroll(ScrollEvent event) {
-        double currentScale = canvas.getScaleX();
+        double currentScale = canvasContainer.getScaleX();
 
-        double zoomFactor = 1.1;
+        double zoomFactor = 1.2;
         if (event.getDeltaY() < 0) {
             zoomFactor = 1 / zoomFactor;
         }
 
-        double mousePosX = event.getX() - canvasContainer.getBoundsInParent().getMinX();
-        double mousePosY = event.getY() - canvasContainer.getBoundsInParent().getMinY();
+        double mousePosX = event.getX() - wrapper.getBoundsInParent().getMinX();
+        double mousePosY = event.getY() - wrapper.getBoundsInParent().getMinY();
 
-        canvas.setScaleX(currentScale * zoomFactor);
-        canvas.setScaleY(currentScale * zoomFactor);
+        double scale = currentScale * zoomFactor;
 
-        double newMousePosX = event.getX() - canvasContainer.getBoundsInParent().getMinX();
-        double newMousePosY = event.getY() - canvasContainer.getBoundsInParent().getMinY();
+        double newMousePosX = event.getX() - wrapper.getBoundsInParent().getMinX();
+        double newMousePosY = event.getY() - wrapper.getBoundsInParent().getMinY();
         double deltaX = newMousePosX - mousePosX;
         double deltaY = newMousePosY - mousePosY;
-        scrollPane.setHvalue(scrollPane.getHvalue() + deltaX / canvasContainer.getWidth());
-        scrollPane.setVvalue(scrollPane.getVvalue() + deltaY / canvasContainer.getHeight());
+
+        canvasContainer.setScaleX(scale);
+        canvasContainer.setScaleY(scale);
+
+        scrollPane.setHvalue(scrollPane.getHvalue() + deltaX / wrapper.getWidth());
+        scrollPane.setVvalue(scrollPane.getVvalue() + deltaY / wrapper.getHeight());
 
         event.consume();
     }
@@ -227,8 +215,6 @@ public class AppController extends VBox {
 
         populationChart.setOnMouseClicked(e -> gameManager.toggleChart());
 
-        showBorderButton.setOnMouseClicked(e -> gameManager.toggleShowBorders());
-
         ObservableList<String> themeNames = FXCollections.observableArrayList(GameManager.themeManager.getThemes().stream().map(t -> t.THEME_NAME).toList());
         themes.setItems(themeNames);
         if(themeNames.size() > 0) themes.setValue(themeNames.get(0));
@@ -263,8 +249,6 @@ public class AppController extends VBox {
         moveSelectionUp.setOnMouseClicked(e -> iGridService.moveSelectedCells(MoveType.UP));
         moveSelectionDown.setOnMouseClicked(e -> iGridService.moveSelectedCells(MoveType.DOWN));
         inverseSelectedCells.setOnMouseClicked(e -> iGridService.inverseSelectedCells());
-        rotateSelectionRight.setOnMouseClicked(e -> iGridService.rotateSelectedCells(MoveType.RIGHT));
-        rotateSelectionLeft.setOnMouseClicked(e -> iGridService.rotateSelectedCells(MoveType.LEFT));
         cancelSelection.setOnMouseClicked(e -> iGridService.cancelSelection());
 
         pauseOnDraw.setOnMouseClicked(e -> uiHandler.handleOnPauseOnDrawButtonClick(e, pauseOnDraw));

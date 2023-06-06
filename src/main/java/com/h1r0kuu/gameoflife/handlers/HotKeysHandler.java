@@ -33,13 +33,13 @@ public class HotKeysHandler {
             String rleString = Clipboard.getSystemClipboard().getString();
             try {
                 Cell[][] copiedCells = RLE.decode(rleString);
+                GameManager.userPreviousState = GameManager.userActionState;
                 GameManager.userActionState = UserActionState.PASTING;
                 gameManager.getGrid().setCellsToPaste(copiedCells);
+                gameManager.getGrid().getRectangle().clear();
             } catch (RuntimeException ex) {
                 System.out.println(ex);
             }
-        } else if(e.getCode() == KeyCode.X) {
-//            gameManager.getUiManager().toggleShowBorder();
         } else if(e.getCode() == KeyCode.PAUSE || e.getCode() == KeyCode.HOME) {
             gameManager.setPaused(!gameManager.isPaused());
         } else if(e.getCode() == KeyCode.A) {
@@ -50,9 +50,8 @@ public class HotKeysHandler {
             gameManager.changeTheme(GameManager.themeManager.nextTheme());
         } else if(e.getCode() == KeyCode.R) {
             gameManager.clearBoard();
-        } else if(e.getCode() == KeyCode.F) {
-//            ButtonComponent fpsCounterButton = gameManager.getUiManager().getFpsCounterButton();;
-//            fpsCounterButton.setVisible(!fpsCounterButton.isVisible());
+        } else if(e.getCode() == KeyCode.T) {
+            gameManager.toggleChart();
         }
     }
 }
