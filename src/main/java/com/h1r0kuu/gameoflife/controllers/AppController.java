@@ -201,7 +201,6 @@ public class AppController extends VBox {
 
     public void initButtonClicks() {
         nextGenerationButton.setOnMouseClicked(e -> gameManager.nextGeneration());
-        previousGenerationButton.setOnMouseClicked(e -> gameManager.previousGeneration());
         playButton.setOnMouseClicked(uiHandler::handlePauseButtonClick);
 
         drawButton.setOnMouseClicked(e -> gameManager.changeState(UserActionState.DRAWING));

@@ -42,8 +42,6 @@ public class HotKeysHandler {
             }
         } else if(e.getCode() == KeyCode.PAUSE || e.getCode() == KeyCode.HOME) {
             gameManager.setPaused(!gameManager.isPaused());
-        } else if(e.getCode() == KeyCode.A) {
-            gameManager.previousGeneration();
         } else if(e.getCode() == KeyCode.D) {
             gameManager.nextGeneration();
         } else if(e.getCode() == KeyCode.C) {

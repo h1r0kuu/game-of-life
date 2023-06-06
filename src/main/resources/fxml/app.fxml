@@ -238,19 +238,8 @@
                      <tooltip>
                         <Tooltip text="Step forward" />
                      </tooltip></Button>
-                        <Button fx:id="previousGenerationButton" layoutX="339.0" layoutY="16.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
-                     <graphic>
-                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/previous.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <tooltip>
-                        <Tooltip text="Step back" />
-                     </tooltip></Button>
-                        <Slider fx:id="gameSpeed" layoutX="264.0" layoutY="17.0" majorTickUnit="8.0" max="64.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="10.0" />
-                        <Label fx:id="gameSpeedLabel" layoutX="274.0" layoutY="25.0" mouseTransparent="true" prefHeight="17.0" prefWidth="46.0" text="10 gps" textFill="WHITE" />
+                        <Slider fx:id="gameSpeed" layoutX="327.0" layoutY="14.0" majorTickUnit="8.0" max="64.0" min="1.0" minorTickCount="1" prefHeight="34.0" prefWidth="56.0" styleClass="slider" value="10.0" />
+                        <Label fx:id="gameSpeedLabel" layoutX="337.0" layoutY="23.0" mouseTransparent="true" prefHeight="17.0" prefWidth="46.0" text="10 gps" textFill="WHITE" />
                   <Label fx:id="generationLabel" layoutX="14.0" layoutY="21.0" text="T 0" textFill="WHITE">
                      <font>
                         <Font size="29.0" />

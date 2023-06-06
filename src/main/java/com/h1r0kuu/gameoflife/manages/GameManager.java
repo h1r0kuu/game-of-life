@@ -21,6 +21,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.Stack;
 
 public class GameManager {
@@ -53,7 +54,6 @@ public class GameManager {
     private ObservableList<XYChart.Data<Number, Number>> graphData;
     private Stage chartStage;
 
-    private final Stack<Cell[]> gameBoardHistory = new Stack<>();
     private final Grid grid;
     private final IGridService iGridService;
     private final Canvas canvas;
@@ -74,19 +74,10 @@ public class GameManager {
     }
 
     public void nextGeneration() {
-        gameBoardHistory.push(grid.getCells());
         iGridService.nextGeneration();
         increaseGeneration();
         addData(generation, grid.getPopulation());
         generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
-    }
-
-    public void previousGeneration() {
-        if (!gameBoardHistory.isEmpty()) {
-            grid.setCells(gameBoardHistory.pop());
-            decreaseGeneration();
-            generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
-        }
     }
 
     public void clearBoard() {
@@ -95,7 +86,6 @@ public class GameManager {
         setGeneration(0);
         generationLabel.setText(LabelUtility.getText(LabelUtility.GENERATION_COUNTER, generation));
     }
-
 
     public boolean isPaused() {
         return isPaused;
