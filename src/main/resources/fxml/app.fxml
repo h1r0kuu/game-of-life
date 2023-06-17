@@ -213,7 +213,7 @@
                 </Pane>
             </right>
             <bottom>
-                <Pane prefHeight="62.0" prefWidth="1020.0" BorderPane.alignment="CENTER">
+                <Pane mouseTransparent="true" prefHeight="62.0" prefWidth="1020.0" BorderPane.alignment="CENTER">
                     <children>
                         <Button fx:id="playButton" layoutX="392.0" layoutY="16.0" maxHeight="25.0" maxWidth="25" mnemonicParsing="false" prefHeight="25.0" prefWidth="25.0" styleClass="button">
                             <graphic>

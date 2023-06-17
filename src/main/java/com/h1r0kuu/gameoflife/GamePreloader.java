@@ -42,6 +42,7 @@ public class GamePreloader extends Preloader {
                 progressBar = (ProgressBar) fxmlLoader.getNamespace().get("progressBar");
                 progressText = (Label) fxmlLoader.getNamespace().get("progressText");
                 preloaderStage = new Stage();
+                preloaderStage.setResizable(false);
                 preloaderStage.setOnCloseRequest(e -> {
                     Platform.exit();
                     System.exit(0);
@@ -69,6 +70,7 @@ public class GamePreloader extends Preloader {
                     GameManager gameManager = appController.getGameManager();
 
                     Scene scene = new Scene(appController);
+                    primaryStage.setResizable(false);
                     primaryStage.setTitle("Game Of Life");
                     primaryStage.setScene(scene);
                     primaryStage.show();
