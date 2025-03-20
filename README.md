@@ -99,6 +99,9 @@ Robert (Student ID: 16810)
 ### Main Application Window
 ![java_AM3XZDF469](https://github.com/user-attachments/assets/36c07251-8812-45f1-8a63-0eb53b996bfd)
 
+### Pattern selector
+![image](https://github.com/user-attachments/assets/879ff652-395c-4f7e-8d0c-57444f58751e)
+
 
 ## License
 
